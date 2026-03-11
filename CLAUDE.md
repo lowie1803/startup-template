@@ -27,7 +27,7 @@ npm run lint      # ESLint
 <!-- Brief note on current focus so Claude has context across sessions -->
 
 ## Where to find things
-- Backlog: `docs/backlog/` (features, bugs, ideas)
-- Architecture decisions: `docs/decisions/`
-- Product vision & roadmap: `docs/product/ROADMAP.md`
+- Backlog: `.project/backlog/BACKLOG.md` (table + inbox)
+- Architecture decisions: `.project/decisions/`
+- Product vision & roadmap: `.project/product/ROADMAP.md`
 - Skills: `.claude/skills/`

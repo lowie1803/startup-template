@@ -5,6 +5,11 @@
         "hooks": [
           {
             "type": "command",
+            "command": ".claude/hooks/filter-done-jobs.sh",
+            "timeout": 10
+          },
+          {
+            "type": "command",
             "command": ".claude/hooks/backlog-context.sh",
             "timeout": 10
           }

@@ -31,3 +31,4 @@ npm run lint      # ESLint
 - Architecture decisions: `.project/decisions/`
 - Product vision & roadmap: `.project/product/ROADMAP.md`
 - Skills: `.claude/skills/`
+- UI/UX design intelligence: `.claude/skills/ui-ux-pro-max/` (run `python3 .claude/skills/ui-ux-pro-max/scripts/search.py --help`)

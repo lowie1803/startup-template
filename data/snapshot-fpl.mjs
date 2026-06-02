@@ -3,9 +3,10 @@
 // Resumable: skips any file that already exists and is non-empty.
 //
 // Usage:
-//   node scripts/snapshot-fpl.mjs
-//   node scripts/snapshot-fpl.mjs --season=2025-26
-//   THROTTLE_MS=300 node scripts/snapshot-fpl.mjs
+//   node data/snapshot-fpl.mjs
+//   node data/snapshot-fpl.mjs --season=2025-26
+//   THROTTLE_MS=300 node data/snapshot-fpl.mjs
+// Or via npm: npm run snapshot
 
 import { mkdir, writeFile, stat } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
@@ -25,7 +26,7 @@ const SEASON = args.season || '2025-26';
 const OUT_DIR = join(REPO_ROOT, 'datasets', `fpl-${SEASON}`, 'raw');
 const FPL_BASE = 'https://fantasy.premierleague.com/api';
 const THROTTLE_MS = Number(process.env.THROTTLE_MS || 200);
-const UA = 'fpl-elite snapshot/1.0 (+local rescue script)';
+const UA = 'fplang snapshot/1.0 (+local data script)';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 

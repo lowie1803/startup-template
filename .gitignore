@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Offline snapshot data — large, regenerate with: npm run snapshot
+datasets/**/raw/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

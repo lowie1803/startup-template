@@ -1,0 +1,48 @@
+# ── Captain & transfer alpha stacks ────────────────────────────────────────────
+# Tier 2 (cross-sectional): rank/z/zscore/quantile/scale/demean.
+# These compose disparate metrics onto a common scale for ranking.
+#
+# These factors depend on scoring.factors primitives — load them first or combine files.
+# In the file runner: node run.mjs factors/scoring.factors factors/captain.factors
+
+# ── Cross-sectional ranking ─────────────────────────────────────────────────────
+value_rank     = rank(value, position)           # best value within position (0=worst, 1=best)
+form_rank      = rank(form, position)            # form rank within position
+captain_rank   = rank(form)                      # overall captain form rank
+bps_rank       = rank(bps90, position)           # bonus earner rank within position
+
+# ── Alpha stacks (combine z-scored signals) ─────────────────────────────────────
+# Captain signal — form + fixture ease + xG overperformance
+captain        = z(form) + z(fixture_ease) + z(xg_over)
+
+# Transfer target — form + fixture + value + fitness
+transfer_target = z(form) + z(fixture_ease) + z(value) + z(available)
+
+# Sell signal — poor form, heavy net outflows, overperforming xG
+sell_signal     = z(-form) + z(-net_transfers) + z(attack_over)
+
+# Differential: high rank × low ownership
+differential    = rank(form) * (1 - selected_by_percent / 100)
+
+# EO edge: high expected output, not owned by the field
+eo_edge         = z(xpts_attack) - z(selected_by_percent)
+
+# Transfer momentum: who the crowd is buying and holds good form
+transfer_momentum = z(net_transfers) + z(form)
+
+# Template risk: who you must own to avoid losing ground
+template_risk  = iff(selected_by_percent > 30, 1, 0)
+
+# Rise pressure: likely to rise in price (highly transferred in)
+rise_pressure  = rank(net_transfers)
+fall_pressure  = rank(-net_transfers)
+
+# DefCon composite: high-floor defenders (DefCon + clean sheets)
+defcon_floor   = z(defcon_rate) + z(point_from_cs)
+
+# Position-specific alpha stacks
+captain_mid    = iff(position == "MID", z(form) + z(fixture_ease) + z(xg_over), null)
+captain_fwd    = iff(position == "FWD", z(form) + z(fixture_ease) + z(xg_over), null)
+
+# Overall transfer score per position (rank within position for shortlist)
+overall_rank   = rank(transfer_target, position)

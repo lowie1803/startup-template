@@ -1,0 +1,28 @@
+# ── Form & momentum ────────────────────────────────────────────────────────────
+# Tier 3 factors — require __history (from element-summary snapshot).
+# All ts_* calls: ts_mean/ts_delta/ts_sum/ts_std/ts_max/ts_min(series(field), n)
+
+# Own form measure (tunable window vs FPL's fixed last-5)
+form_ts3     = ts_mean(series(points), 3)        # 3-GW rolling average
+form_ts5     = ts_mean(series(points), 5)        # 5-GW rolling average (closest to FPL's form)
+form_ts10    = ts_mean(series(points), 10)       # 10-GW baseline
+
+# Trajectory: positive = improving, negative = fading
+momentum     = ts_delta(series(points), 3)       # recent 3GWs vs 3GWs ago
+
+# Consistency: low std = reliable output (the 1/(std+1) trick prevents div-by-zero)
+consistency  = iff(ts_std(series(points), 6) != null, 1 / (ts_std(series(points), 6) + 1), null)
+
+# Ceiling / floor
+ceiling      = ts_max(series(points), 6)         # best score in last 6 GWs
+floor_pts    = ts_min(series(points), 6)         # worst score in last 6 GWs
+
+# Cumulative demand signal
+transfer_pressure_3 = ts_sum(series(net_transfers), 3)  # net transfers over 3 GWs
+
+# Minutes trend (rotation watch)
+minutes_trend4 = ts_mean(series(minutes), 4)    # recent 4-GW minutes average
+minutes_trend8 = ts_mean(series(minutes), 8)    # longer window
+
+# Minutes momentum: catching more vs fewer minutes
+minutes_delta = ts_delta(series(minutes), 3)    # positive = getting more time

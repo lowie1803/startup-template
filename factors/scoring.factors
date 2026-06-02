@@ -1,0 +1,47 @@
+# ── FPL scoring primitives ─────────────────────────────────────────────────────
+# Decompose total_points into its components.
+# All Tier 0-1 (scalar + position helpers).
+
+point_from_goals   = goals_scored * goal_points(position)
+point_from_assists = assists * assist_points
+point_from_cs      = clean_sheets * cs_points(position)
+point_from_ga      = point_from_goals + point_from_assists
+point_from_bonus   = bonus
+
+# ── Expected attacking stats ────────────────────────────────────────────────────
+xpts_attack  = expected_goals * goal_points(position) + expected_assists * assist_points
+attack_over  = point_from_ga - xpts_attack      # positive = overperforming; likely to regress
+xg_over      = goals_scored - expected_goals     # finishing luck
+xa_over      = assists - expected_assists        # assist luck
+xgi_over     = (goals_scored + assists) - expected_goal_involvements
+
+# ── Value ───────────────────────────────────────────────────────────────────────
+value        = total_points / price              # points per £m, the staple
+ppg90        = per90(total_points, minutes)      # scoring rate, not accumulation
+ict_value    = ict_index / price                 # involvement value
+
+# ── Availability ───────────────────────────────────────────────────────────────
+available    = coalesce(chance_of_playing_next_round, 100) / 100
+nailed       = iff(minutes > 1500, 1, 0)         # 1 if strong starter, 0 if rotation risk
+
+# ── Fixture ease ───────────────────────────────────────────────────────────────
+fixture_ease = 6 - fdr                           # invert difficulty (higher = easier)
+
+# ── GK-specific ────────────────────────────────────────────────────────────────
+saves_pts    = iff(position == "GKP", saves / 3, 0)
+gk_value     = iff(position == "GKP", (saves_pts + point_from_cs) / price, 0)
+
+# ── Transfer pressure ──────────────────────────────────────────────────────────
+net_transfers  = transfers_in_event - transfers_out_event
+
+# ── Bonus magnet ───────────────────────────────────────────────────────────────
+bps90        = per90(bps, minutes)
+bonus_share  = iff(total_points > 0, point_from_bonus / total_points, 0)
+
+# ── Attack share (how attacking-reliant the player's returns are) ───────────────
+attack_share = iff(total_points > 0, point_from_ga / total_points, 0)
+
+# ── DefCon (2025-26 rule) ──────────────────────────────────────────────────────
+defcon_rate  = defensive_contribution_per_90
+defcon_value = iff(price > 0, defensive_contribution / price, 0)
+cbi90        = per90(clearances_blocks_interceptions, minutes)

@@ -4,22 +4,38 @@
 
 | ID  | Type    | Description                                               | Priority | Status |
 |-----|---------|-----------------------------------------------------------|----------|--------|
-| 001 | engine  | Lexer — span-aware tokenizer                              | P0       | todo   |
-| 002 | engine  | Parser — Pratt parser → typed AST                        | P0       | todo   |
-| 003 | engine  | Dep graph + Kahn topo sort + cycle detection              | P0       | todo   |
-| 004 | engine  | Classify factors (scalar/xs/ts) + class propagation       | P0       | todo   |
-| 005 | engine  | Typecheck pass — span diagnostics                         | P0       | todo   |
-| 006 | engine  | Panel (columnar Float64Array) data model                 | P0       | todo   |
-| 007 | engine  | Scalar runtime: builtins + compiled closures              | P0       | todo   |
-| 008 | engine  | Public API: parse / analyze / evaluate / listFields       | P0       | todo   |
 | 009 | bin     | run.ts file runner                                        | P1       | todo   |
 | 010 | engine  | Cross-sectional: rank/z/quantile/scale/demean (Tier 2)   | P1       | todo   |
 | 011 | engine  | Time-series: ts_* over ListArray history (Tier 3)        | P1       | todo   |
-| 012 | bin     | repl.ts interactive REPL                                  | P1       | todo   |
 | 013 | bin     | llm-harness.ts LLM generation harness                    | P2       | todo   |
 | 014 | docs    | docs/design/architecture.md — locked decisions + ladder  | P1       | todo   |
-| 015 | data    | data/loadSnapshot.ts — columnar panel from JSON snapshot  | P0       | todo   |
-| 016 | cleanup | Remove sandbox/ from fpl-elite + pointer stub            | P2       | todo   |
 | 017 | engine  | expected_minutes(n) / xgw_pts(n) parameterized factors   | P2       | todo   |
+| 018 | engine  | goal_points/cs_points/assist_points domain lookup fns    | P1       | todo   |
+
+## Done
+
+| ID  | Type    | Description                                               | Completed  |
+|-----|---------|-----------------------------------------------------------|------------|
+| 001 | engine  | Lexer — span-aware tokenizer                              | 2026-06-03 |
+| 002 | engine  | Parser — Pratt parser → typed AST                        | 2026-06-03 |
+| 003 | engine  | Dep graph + Kahn topo sort + cycle detection              | 2026-06-04 |
+| 004 | engine  | Classify factors (scalar/xs/ts) + class propagation       | 2026-06-04 |
+| 005 | engine  | Typecheck pass — span diagnostics                         | 2026-06-04 |
+| 006 | engine  | Panel (columnar Float64Array) data model                 | 2026-06-03 |
+| 007 | engine  | Scalar runtime: builtins + compiled closures              | 2026-06-03 |
+| 008 | engine  | Public API: parse / analyze / evaluate / listFields       | 2026-06-03 |
+| 012 | bin     | repl.ts interactive REPL                                  | 2026-06-03 |
+| 015 | data    | data/loadSnapshot.ts — columnar panel from JSON snapshot  | 2026-06-04 |
+| 016 | cleanup | Remove sandbox/ from fpl-elite + pointer stub            | 2026-06-03 |
+
+## Notes
+
+- **008** is now fully wired: `analyze()` uses real dep graph, topo sort, classification,
+  and typecheck (003/004/005). The stub is gone.
+- **016** closed: `sandbox/` never existed in `fpl-elite` — no action needed.
+- **018** added: `goal_points(position)`, `cs_points(position)`, `assist_points` are
+  stubbed in `src/runtime/builtins.ts` with a clear error. Unblocks `scoring.factors`.
+- **sema catalog**: `src/catalog/functions.ts` is the single source of truth for function
+  signatures, arity, and class. The runtime `BUILTINS` registry (Tier 1 only) is separate.
 
 ## Inbox

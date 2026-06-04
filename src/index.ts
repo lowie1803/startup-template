@@ -3,153 +3,162 @@
  *
  * Public API — the editor substrate consumed by CodeMirror (lint, hover, autocomplete)
  * and the CLI/REPL/backtest runner.
- *
- * STATUS: contract stubs. Engine implementation pending (see backlog items 001-007).
- * `parse()`, `analyze()`, and `evaluate()` throw until the engine is wired.
- * `listFields()` returns [] (safe empty catalog; filled by catalog/fields.ts later).
  */
 
-// ---------------------------------------------------------------------------
-// Shared primitives
-// ---------------------------------------------------------------------------
+// ── Re-export shared primitives ───────────────────────────────────────────────
+export type { SourceSpan, Diagnostic, FieldDef } from './types.js';
 
-/** Character range within the source text — carried by every token and AST node. */
-export interface SourceSpan {
-  from: number;
-  to: number;
-}
+// ── Re-export AST types ───────────────────────────────────────────────────────
+export type { Assignment, Expr } from './parser/ast.js';
 
-/** A diagnostic produced by the parse, sema, or runtime phases. Carries a span
- *  so the editor can underline the offending characters. */
-export interface Diagnostic {
-  message: string;
-  severity: 'error' | 'warning';
-  from: number;
-  to: number;
-}
+// ── Re-export Panel ───────────────────────────────────────────────────────────
+export { Panel } from './runtime/panel.js';
+export type { ColumnData } from './runtime/panel.js';
 
-// ---------------------------------------------------------------------------
-// Field catalog
-// ---------------------------------------------------------------------------
+// ── Internal imports (not re-exported) ───────────────────────────────────────
+import { tokenize } from './lexer/lexer.js';
+import { parse as _parse } from './parser/parser.js';
+import { evaluateFactors } from './runtime/evaluate.js';
+import { FPL_FIELDS } from './catalog/fields.js';
+import { FN_MAP, KNOWN_CONSTANTS } from './catalog/functions.js';
+import { buildDepGraph, topoSort, factorNameSet } from './sema/depgraph.js';
+import { classifyDefs } from './sema/classify.js';
+import { typecheck } from './sema/typecheck.js';
 
-/** A single field available in the player panel (base data or a prior factor). */
-export interface FieldDef {
-  name: string;
-  type: 'number' | 'string' | 'bool';
-  description?: string;
-}
+import type { SourceSpan, Diagnostic, FieldDef } from './types.js';
+import type { Assignment } from './parser/ast.js';
+import type { Panel } from './runtime/panel.js';
 
-// ---------------------------------------------------------------------------
-// Columnar data model (defined fully in runtime/panel.ts later)
-// ---------------------------------------------------------------------------
-
-/**
- * A data panel — one row per player.
- * Numeric fields: Float64Array; categorical: string[]; history: Arrow ListArray shape.
- * Typed properly once runtime/panel.ts exists.
- */
-export interface Panel {
-  [field: string]: unknown;
-}
-
-// ---------------------------------------------------------------------------
-// parse()
-// ---------------------------------------------------------------------------
-
-/** Raw AST definition node — typed fully once parser/ast.ts exists. */
-export type AssignmentNode = unknown;
+// ── Public result types ───────────────────────────────────────────────────────
 
 export interface ParseResult {
   /** One entry per `name = expression` line, in document order. */
-  defs: AssignmentNode[];
+  defs: Assignment[];
   /** Parse errors with character ranges. */
   diagnostics: Diagnostic[];
 }
-
-/**
- * Lex + parse only — no semantic analysis or evaluation.
- * Fast enough to run on every keystroke.
- * Returns span-annotated AST nodes + parse diagnostics.
- *
- * @throws {Error} 'fplang engine not yet implemented' — until lexer/parser are built.
- */
-export function parse(_text: string): ParseResult {
-  throw new Error('fplang engine not yet implemented');
-}
-
-// ---------------------------------------------------------------------------
-// analyze()
-// ---------------------------------------------------------------------------
 
 /** Factor evaluation class assigned by the sema phase. */
 export type FactorClass = 'scalar' | 'xs' | 'ts' | 'xs+ts';
 
 export interface AnalysisResult {
-  /** Factor names in safe evaluation order (topological sort, cycles excluded). */
+  /** Factor names in safe evaluation order (topo-sorted, document order for ties). */
   order: string[];
-  /** Semantic + type diagnostics (undefined names, series misuse, cycles, …). */
+  /** Semantic + type diagnostics (undefined names, cycles, arity errors, …). */
   diagnostics: Diagnostic[];
-  /** Evaluation class per factor name, after cross-factor class propagation. */
+  /** Evaluation class per factor name. */
   classifications: Record<string, FactorClass>;
-  /** char-offset → hover text for the editor tooltip layer. */
+  /** char-offset → hover text (minimal — full hover is backlog 008). */
   hoverMap: Record<number, string>;
-  /** Names valid for autocomplete at any position (base fields + in-scope factors). */
+  /** Names valid for autocomplete: base fields + defined factors + known functions. */
   completions: string[];
 }
-
-/**
- * Full semantic analysis without evaluation.
- * Run on parse success to feed the editor: lint underlines, hover, autocomplete.
- *
- * @param text   Factor source text.
- * @param fields Field catalog — base data fields available in the panel.
- * @throws {Error} 'fplang engine not yet implemented' — until sema phase is built.
- */
-export function analyze(_text: string, _fields: FieldDef[]): AnalysisResult {
-  throw new Error('fplang engine not yet implemented');
-}
-
-// ---------------------------------------------------------------------------
-// evaluate()
-// ---------------------------------------------------------------------------
 
 export interface EvalResult {
   /** Input panel extended with one new column per successfully evaluated factor. */
   panel: Panel;
   /** Names of the factor columns added (in evaluation order). */
   factorNames: string[];
-  /** Runtime diagnostics (type errors discovered during eval, null propagation notes, …). */
+  /** Runtime diagnostics. */
   diagnostics: Diagnostic[];
 }
 
+// ── Public API ────────────────────────────────────────────────────────────────
+
 /**
- * Full evaluation: parse → sema → compile → run.
- * Returns the enriched panel with factor columns appended.
- * Factor values are rounded to 6 decimal places at the boundary.
- * Infinity / NaN / ÷0 → null. Null propagates through arithmetic.
- *
- * @param text   Factor source text.
- * @param panel  Columnar player panel (base data).
- * @param fields Field catalog matching the panel.
- * @throws {Error} 'fplang engine not yet implemented' — until runtime is built.
+ * Lex + parse only — no semantic analysis or evaluation.
+ * Fast enough to run on every keystroke.
+ * Returns span-annotated AST nodes + parse diagnostics.
  */
-export function evaluate(
-  _text: string,
-  _panel: Panel,
-  _fields: FieldDef[],
-): EvalResult {
-  throw new Error('fplang engine not yet implemented');
+export function parse(text: string): ParseResult {
+  const { tokens, diagnostics: lexDiags } = tokenize(text);
+  const { defs, diagnostics: parseDiags } = _parse(tokens);
+  return { defs, diagnostics: [...lexDiags, ...parseDiags] };
 }
 
-// ---------------------------------------------------------------------------
-// listFields()
-// ---------------------------------------------------------------------------
+/**
+ * Full semantic analysis without evaluation.
+ * - Builds the dependency graph and topological sort.
+ * - Classifies each factor (scalar/xs/ts/xs+ts) with class propagation.
+ * - Reports undefined-name, cycle, arity, type, and duplicate diagnostics.
+ * - Returns completions including all known function names.
+ */
+export function analyze(text: string, fields: FieldDef[]): AnalysisResult {
+  const { tokens, diagnostics: lexDiags } = tokenize(text);
+  const { defs, diagnostics: parseDiags } = _parse(tokens);
+
+  const allDiags: Diagnostic[] = [...lexDiags, ...parseDiags];
+
+  if (defs.length === 0) {
+    const completions = [
+      ...fields.map(f => f.name),
+      ...Array.from(FN_MAP.keys()),
+      ...Array.from(KNOWN_CONSTANTS),
+    ];
+    return {
+      order: [],
+      diagnostics: allDiags,
+      classifications: {},
+      hoverMap: {},
+      completions,
+    };
+  }
+
+  const names = factorNameSet(defs);
+  const docOrder = defs.map(d => d.name);
+
+  // 1. Dep graph + topo sort + cycle detection (003)
+  const graph  = buildDepGraph(defs, names);
+  const { order, cycleNodes } = topoSort(graph, docOrder);
+
+  // Cycle diagnostics — one error per cycle member at its nameSpan
+  for (const def of defs) {
+    if (cycleNodes.has(def.name)) {
+      allDiags.push({
+        message: `Cycle detected: '${def.name}' is part of a circular dependency`,
+        severity: 'error',
+        from: def.nameSpan.from,
+        to: def.nameSpan.to,
+      });
+    }
+  }
+
+  // 2. Classify (004)
+  const classifications = classifyDefs(defs, graph, order);
+
+  // 3. Typecheck (005)
+  const typeDiags = typecheck(defs, fields, names);
+  allDiags.push(...typeDiags);
+
+  // Completions: base fields + factor names + function catalog + constants
+  const completions: string[] = [
+    ...fields.map(f => f.name),
+    ...docOrder,
+    ...Array.from(FN_MAP.keys()),
+    ...Array.from(KNOWN_CONSTANTS),
+  ];
+
+  return {
+    order,
+    diagnostics: allDiags,
+    classifications,
+    hoverMap: {},
+    completions,
+  };
+}
 
 /**
- * Returns the vendored field catalog (base FPL fields available in the panel).
- * Safe stub returns [] until catalog/fields.ts is populated.
- * Future: returns the full list from src/catalog/fields.ts.
+ * Full evaluation: parse → compile → run.
+ * Returns the enriched panel with factor columns appended.
+ */
+export function evaluate(text: string, panel: Panel, fields: FieldDef[]): EvalResult {
+  const { panel: outPanel, factorNames, diagnostics } = evaluateFactors(text, panel, fields);
+  return { panel: outPanel, factorNames, diagnostics };
+}
+
+/**
+ * Returns the vendored FPL field catalog.
  */
 export function listFields(): FieldDef[] {
-  return [];
+  return FPL_FIELDS;
 }

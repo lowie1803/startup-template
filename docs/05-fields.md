@@ -1,11 +1,15 @@
-# Fields — Data Catalog
+# Fields — `fpl` Source Catalog
 
-All fields available in factor expressions when `source: players` (the default). Fields from
-other sources are listed at the end.
+This document lists the fields provided by the built-in **`fpl` source** — the FPL API
+player data. These are the fields available as bare identifiers (`goals_scored`) or with
+the explicit prefix (`fpl.goals_scored`).
 
-The raw FPL `element` object has **105 fields**. Today's DSL surfaces ~28. This document is
-the **canonical list** — the field catalog, autocomplete, hover docs, and the Data Inventory
-UI are all generated from it (single source of truth).
+For fields from other sources (Understat, FBRef, odds, …) and how multi-source data works,
+see [`11-data-sources.md`](11-data-sources.md).
+
+The raw FPL `element` object has **105 fields**. The `fpl` source surfaces the useful
+subset. This document is the **canonical `fpl` field list** — the catalog (`src/catalog/fields.ts`),
+autocomplete, hover docs, and the Data Inventory UI are all generated from it.
 
 ---
 
@@ -165,47 +169,45 @@ via `series(fieldName)` inside `ts_*` functions.
 
 ---
 
-## Other sources
+## Third-party sources
 
-Fields from non-player sources. These are not in scope for factor definitions (factors operate
-on player rows) but are available in DataLab pipelines.
+Fields from other providers (Understat, FBRef, odds APIs, fixture models, …) are delivered
+by pluggable `DataSource` modules — each typically a separate repo — and addressed in factor
+expressions with dotted namespace syntax:
 
-### `source: teams`
-`id`, `name`, `short_name`, `strength`, `strength_attack_home`, `strength_attack_away`,
-`strength_defence_home`, `strength_defence_away`
+```
+xg_over = goals_scored - understat.xg        # bare fpl + prefixed understat
+captain  = z(form) + z(understat.xg_per_90)
+```
 
-### `source: fixtures`
-`event`, `team_h`, `team_a`, `team_h_difficulty`, `team_a_difficulty`,
-`team_h_score`, `team_a_score`, `finished`
+Each source declares its own field catalog, handles its own schema mapping, and normalises
+player rows to FPL element ids for the core panel merge.
 
-### `source: events`
-`id`, `name`, `is_current`, `is_next`, `average_entry_score`, `highest_score`, `deadline_time`
+See [`11-data-sources.md`](11-data-sources.md) for the `DataSource` contract, the merge
+mechanism, and instructions for authoring a new source.
 
-### `source: live_scores` (async, requires `gw=N`)
-`id`, `total_points`, `minutes`, `goals_scored`, `assists`, `clean_sheets`,
-`bonus`, `bps`, `yellow_cards`, `red_cards`, `saves`
-
-### `source: player_history` (async, requires `id=N`)
-`round`, `total_points`, `minutes`, `goals_scored`, `assists`, `bonus`, `bps`,
-`value`, `selected`, `transfers_in`, `transfers_out`
-
-### `source: dream_team` (async, requires `gw=N`)
-`element`, `points`, `position`
-
-### `source: set_piece_notes` (async)
-`id`, `notes` (free text — view in JSON tree, not expression-addressable)
+> **Note on legacy terminology:** earlier versions of this doc used `source: players`,
+> `source: teams`, `source: fixtures` to mean *FPL API endpoints within the DataLab app*.
+> That usage is superseded by the pluggable source model (ADR-002). The teams/fixtures/events
+> data will eventually be exposed as fields in the `fpl` source catalog or a dedicated
+> `fpl_fixtures` source, not as separate pipeline source types.
 
 ---
 
 ## Single source of truth
 
-The field catalog (`dslSources.js` → `SOURCE_REGISTRY[source].fields[]`) is the **only**
-place field definitions live. Everything else reads from it:
+The `fpl` source field catalog lives in **`src/catalog/fields.ts`** (`FPL_FIELDS`). That
+is the only place `fpl` field definitions should be added or changed. Everything else reads
+from it:
 
-- Editor autocomplete (`dslLang.js` `dslCompletionSource`)
+- Editor autocomplete
 - Editor hover tooltip (field description on hover)
 - Semantic linter (unknown field names)
-- Data Inventory UI tab (auto-generated from registry)
-- Skill docs (auto-generated section)
+- Data Inventory UI tab (auto-generated)
+- `loadSnapshot.ts` — column construction is driven by `FPL_FIELDS` directly
 
-Do not add field documentation to any of those places manually — update the registry instead.
+Do not add field documentation anywhere else — update `src/catalog/fields.ts` instead.
+
+For non-`fpl` sources: each source repo maintains its own field catalog in the same
+`FieldDef[]` shape. The merged catalog (`[...fplSource.fields, ...otherSource.fields]`)
+is passed to `analyze()` and `evaluate()` at call time.

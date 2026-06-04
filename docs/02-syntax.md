@@ -46,12 +46,39 @@ Ignored. Use them freely for readability.
 
 ### Identifiers
 
-An identifier is a bare word matching `/^[a-zA-Z_]\w*$/`. At evaluation time the engine
-resolves it in this order:
+A bare identifier matches `/^[a-zA-Z_]\w*$/`. The engine resolves it in this order:
 
-1. **Base field** — a column on the current row (e.g. `goals_scored`, `price`)
+1. **Field from the default `fpl` source** — e.g. `goals_scored`, `price`
 2. **Factor name** — a defined factor (builtin or user-defined)
 3. **Error** — unknown identifier reported as a lint diagnostic
+
+### Qualified names
+
+When a data source other than `fpl` is active, its fields are addressed with dotted syntax:
+
+```
+source.field
+```
+
+Examples:
+```
+xg_over = fpl.goals_scored - understat.xg   # explicit fpl prefix (optional)
+captain  = z(form) + z(understat.xg_per_90) # bare fpl, prefixed understat
+```
+
+**Default source rule:** `fpl` is the built-in default. Its fields resolve either bare
+(`goals_scored`) or prefixed (`fpl.goals_scored`) — both are identical. This preserves
+full backward compatibility with existing factors.
+
+Non-default sources **must** always be prefixed. Writing `xg` alone when only
+`understat.xg` is active is a sema error (`Unknown name 'xg'`).
+
+**Source names are reserved** — a user-defined factor cannot be named `fpl`, `understat`,
+or any other registered source id. The sema pass enforces this.
+
+Grammar note: `source.field` is parsed into a `QualifiedName` AST node (`{ kind: 'QualifiedName', source, field, span }`), distinct from a bare `Identifier`. The parser recognises the pattern `Identifier DOT Identifier` and checks whether the first part is a known source id.
+
+See [`11-data-sources.md`](11-data-sources.md) for how sources are defined and registered.
 
 ### Arithmetic operators
 

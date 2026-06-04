@@ -1,13 +1,16 @@
 # Factor DSL — Design Spec
 
-> Design documents for the FPL Elite Factor DSL. No implementation yet — these are the spec
-> the eventual engine and editor will be checked against.
+> Design documents for the FPL Elite Factor DSL.
+> The engine is built; these docs are the authoritative spec it is checked against.
 
 ---
 
 ## What this is
 
-The **Factor DSL** replaces the DataLab's current query language with an **alpha / factor library**:
+The **Factor DSL** replaces the DataLab's current query language with an **alpha / factor library**.
+The field set is multi-source: the built-in `fpl` source provides the FPL API player fields;
+third-party sources (Understat, FBRef, odds APIs, …) are pluggable modules that contribute
+additional fields, addressed in expressions as `source.field` (see [`11-data-sources.md`](11-data-sources.md)).
 a way to define named derived attributes from base data that compose with each other, persist
 across sessions, and appear as first-class fields everywhere in the app.
 
@@ -68,14 +71,15 @@ The DataLab has a hard split:
 | File | What it covers |
 |---|---|
 | [`01-usecases.md`](01-usecases.md) | The 13 factor families — the catalog of real FPL questions the DSL answers |
-| [`02-syntax.md`](02-syntax.md) | Grammar: factor definition, operators, precedence, comments |
+| [`02-syntax.md`](02-syntax.md) | Grammar: factor definition, operators, precedence, qualified names, comments |
 | [`03-types.md`](03-types.md) | Type system: number / string / bool / series; coercion & null rules |
 | [`04-functions.md`](04-functions.md) | Full function reference — scalar, position helpers, cross-sectional, time-series |
-| [`05-fields.md`](05-fields.md) | Data catalog: all base fields, fields to expose, series fields |
+| [`05-fields.md`](05-fields.md) | `fpl` source field catalog: all FPL player fields and series fields |
 | [`06-evaluation.md`](06-evaluation.md) | How the engine evaluates: dependency graph, three evaluation classes |
 | [`07-features.md`](07-features.md) | Factor library lifecycle, persistence, surfaces, engine unification |
 | [`08-editor.md`](08-editor.md) | Editor UX: autocomplete, hover, semantic lint, snippets, live preview |
 | [`09-roadmap.md`](09-roadmap.md) | Tiers / phasing, deferred capabilities, backlog links |
+| [`11-data-sources.md`](11-data-sources.md) | Multi-source data: the `DataSource` contract, namespace syntax, Panel merge, authoring guide |
 
 ---
 

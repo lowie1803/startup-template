@@ -38,20 +38,22 @@ npm run snapshot                           # regenerate datasets/fpl-2025-26/raw
 - **Columnar data model.** Player rows are Float64Array columns (not JS object arrays), history is Arrow ListArray shape.
 - **Class propagation.** A factor that references an XS or TS factor is promoted to at least that class.
 - **Null semantics.** Arithmetic with a null operand → null; Infinity/NaN → null; series() only inside ts_* calls.
+- **Multi-source data (ADR-002).** Each data source is an independent repo implementing the `DataSource` contract. Fields from non-default sources are addressed as `source.field` in factor expressions. The `fpl` source is the default; its fields resolve bare or prefixed. See `docs/11-data-sources.md`.
 
 ## What's in progress right now
-Building the engine from scratch (clean TS rewrite of the old fpl-elite/sandbox/ JS prototype):
-- Phase 1 (active): lexer → parser → AST → depGraph → classify → typecheck → runtime scalar
-- Phase 2: cross-sectional (rank/z/quantile)
-- Phase 3: time-series (ts_mean/delta/std)
-- Phase 4: bin/ entrypoints (run/repl/llm-harness)
+Engine Phase 1 is complete (lexer → parser → sema → scalar runtime → REPL). Up next:
+- **019–022:** multi-source grammar + DataSource contract + Panel merge (ADR-002)
+- **010:** cross-sectional runtime (rank/z/quantile)
+- **011:** time-series runtime (ts_mean/delta/std)
+- **009/013:** run.ts + llm-harness.ts bin/ entrypoints
 
 ## Where to find things
-- **Language spec:** docs/ (README + 01-usecases through 10-expected-minutes)
-- **Architecture decisions:** .project/decisions/ (ADR-001 = language/runtime decision)
+- **Language spec:** docs/ (README + 01-usecases through 11-data-sources)
+- **Architecture decisions:** .project/decisions/ (ADR-001 = language/runtime; ADR-002 = multi-source data)
 - **Backlog:** .project/backlog/BACKLOG.md
 - **Sample factor libraries:** factors/ (scoring.factors, momentum.factors, captain.factors)
-- **Offline data loader:** data/loadSnapshot.ts + datasets/fpl-2025-26/raw/
+- **Offline data loader (fpl source):** data/loadSnapshot.ts + datasets/fpl-2025-26/raw/
+- **Multi-source spec:** docs/11-data-sources.md
 - **Skills:** .claude/skills/
 
 ## Workflow habits

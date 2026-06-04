@@ -92,19 +92,24 @@ partial; full needs join across GW dream_team data).
 
 ## Deferred capabilities
 
-### Join primitive
+### Join primitive — partially in scope (ADR-002)
 
-The single biggest capability this DSL **consciously defers**. All out-of-scope use cases from
-`01-usecases.md` (set-piece takers joined to players, home/away splits, cross-GW dream-team
-counts) require joining across two sources on a key.
+There are two distinct join needs handled differently:
 
-This is deferred because:
-1. It substantially complicates the evaluation model (rows from two sources, matching keys,
-   handling misses)
-2. The use cases for it are nice-to-have (set pieces) or blocked on other data (dream-team tracker)
-3. The factor engine stays fast and predictable without it
+**In scope — source panel merge (ADR-002, backlog 022):**
+Each `DataSource` produces a Panel keyed on the FPL element id. Core merges source panels
+before evaluation via `mergePanels(base, ...sources)` — a `LEFT JOIN` on integer player id.
+This covers all multi-source cases (Understat xG, odds data, fixture difficulty models, …)
+without complicating the evaluation model. See [`11-data-sources.md`](11-data-sources.md).
 
-A future `join(source, on: field)` keyword in the pipeline (not in factors) is the likely path.
+**Still deferred — general pipeline join:**
+`join(source, on: field)` in the DataLab pipeline (non-player sources, cross-GW joins,
+non-id keys). Deferred because:
+1. All immediately wanted use cases are covered by the source-panel merge above.
+2. General joins substantially complicate pipeline evaluation.
+3. The remaining use cases (dream-team tracker, set-piece cross-source) are data-blocked.
+
+A future `join(source, on: field)` pipeline keyword remains the likely path.
 
 ### LLM-assisted factor generation
 
@@ -148,4 +153,7 @@ adapter pattern (backlog 110) is the natural extension. Out of scope until the s
 | Factor scope | Persisted library, not script-local | Reuse everywhere is the point |
 | Base pack | Ship full canonical pack | Encoding FPL scoring once; strong onboarding + LLM grounding |
 | Engine ceiling | All three tiers (Tier 3 gated on data) | User chose the most ambitious path |
-| Join primitive | Deferred | Complexity vs. benefit; all immediately wanted use cases work without it |
+| Join primitive (source merge) | In scope — `mergePanels` join-on-id | Covers multi-source; constrained form is cheap (ADR-002, backlog 022) |
+| Join primitive (general pipeline) | Deferred | Complexity vs. benefit; immediately wanted cases covered by source merge |
+| Multi-source namespace | `source.field` dotted syntax; `fpl` bare back-compat | Explicit origin, no collision; existing factors unchanged (ADR-002) |
+| Data source model | Source = independent repo + `DataSource` contract | Decoupled; community-extensible; fplang core stays lean (ADR-002) |

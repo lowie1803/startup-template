@@ -11,6 +11,11 @@
 | 014 | docs    | docs/design/architecture.md — locked decisions + ladder  | P1       | todo   |
 | 017 | engine  | expected_minutes(n) / xgw_pts(n) parameterized factors   | P2       | todo   |
 | 018 | engine  | goal_points/cs_points/assist_points domain lookup fns    | P1       | todo   |
+| 019 | engine  | Dotted names: lexer + parser → QualifiedName AST node    | P1       | todo   |
+| 020 | engine  | Sema: resolve qualified names; source-aware catalog + diagnostics | P1 | todo |
+| 021 | data    | DataSource interface + source registry; merged catalog   | P1       | todo   |
+| 022 | data    | Panel merge / join-on-id utility (mergePanels)           | P1       | todo   |
+| 023 | data    | Refactor loadSnapshot.ts into fpl reference DataSource   | P2       | todo   |
 
 ## Done
 
@@ -37,5 +42,8 @@
   stubbed in `src/runtime/builtins.ts` with a clear error. Unblocks `scoring.factors`.
 - **sema catalog**: `src/catalog/functions.ts` is the single source of truth for function
   signatures, arity, and class. The runtime `BUILTINS` registry (Tier 1 only) is separate.
+- **019–023** implement ADR-002 (multi-source data). Rationale in
+  `.project/decisions/ADR-002-multi-source-data.md`. 022 is the constrained join-on-id
+  form for source panel merge — not the deferred general pipeline join primitive.
 
 ## Inbox

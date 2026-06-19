@@ -112,4 +112,4 @@ export const TS_FUNCS: ReadonlySet<string> = new Set(TS_SIGS.map(s => s.name));
  * Bare-identifier constants (not function calls).
  * `assist_points` is a constant = 3, per docs/04-functions.md.
  */
-export const KNOWN_CONSTANTS: ReadonlySet<string> = new Set(['assist_points']);
+export const KNOWN_CONSTANTS: ReadonlySet<string> = new Set(['assist_points', 'null']);

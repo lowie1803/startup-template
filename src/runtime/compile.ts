@@ -42,6 +42,8 @@ export function compileExpr(
 
     case 'Identifier': {
       const name = expr.name;
+      // null literal — always returns null (used in iff(cond, val, null))
+      if (name === 'null') return () => null;
       // Bare constants (assist_points = 3, etc.) — resolve without panel lookup
       if (name in CONSTANTS) {
         const v = CONSTANTS[name]!;

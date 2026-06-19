@@ -264,5 +264,5 @@ const styles: Record<string, React.CSSProperties> = {
   drawerArea:  { height: 260, borderTop: '1px solid #e5e7eb', flexShrink: 0 },
   right:       { flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' },
   center:      { display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 },
-  docsDrawer:  { height: 320, borderTop: '2px solid #e5e7eb', background: '#fff', flexShrink: 0 },
+  docsDrawer:  { position: 'fixed', bottom: 0, left: 0, right: 0, height: 320, borderTop: '2px solid #4f46e5', background: '#fff', boxShadow: '0 -4px 16px rgba(0,0,0,0.08)', zIndex: 100 },
 };

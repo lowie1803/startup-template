@@ -102,34 +102,94 @@ function b_ceil(args: ScalarValue[]): ScalarValue {
   return isFinite(n) ? Math.ceil(n) : null;
 }
 
-// ── Deferred domain functions (stubs) ─────────────────────────────────────────
+// ── Scalar additions (018 / cleanup) ─────────────────────────────────────────
 
-function deferredStub(name: string): BuiltinFn {
-  return () => {
-    throw new Error(
-      `'${name}' is a domain-specific lookup function not yet implemented. ` +
-      `It requires a position-to-points mapping table (deferred feature).`,
-    );
-  };
+/** clamp(x, lo, hi) — clamp x to [lo, hi]. Null in → null. */
+function b_clamp(args: ScalarValue[]): ScalarValue {
+  const x  = toNum(args[0] ?? null, 'clamp');
+  const lo = toNum(args[1] ?? null, 'clamp');
+  const hi = toNum(args[2] ?? null, 'clamp');
+  if (!isFinite(x) || !isFinite(lo) || !isFinite(hi)) return null;
+  return Math.min(Math.max(x, lo), hi);
+}
+
+/** isnull(x) — 1 if null, 0 otherwise. Never returns null. */
+function b_isnull(args: ScalarValue[]): ScalarValue {
+  return (args[0] ?? null) === null ? 1 : 0;
+}
+
+/** notnull(x) — 1 if not null, 0 otherwise. Never returns null. */
+function b_notnull(args: ScalarValue[]): ScalarValue {
+  return (args[0] ?? null) !== null ? 1 : 0;
+}
+
+/** exp(x) — e^x. Non-finite result → null. */
+function b_exp(args: ScalarValue[]): ScalarValue {
+  const n = toNum(args[0] ?? null, 'exp');
+  if (!isFinite(n)) return null;
+  const result = Math.exp(n);
+  return isFinite(result) ? result : null;
+}
+
+// ── FPL domain lookups (018) ──────────────────────────────────────────────────
+//
+// Points lookup tables per the official FPL scoring rules:
+//   Goals: GKP/DEF = 6, MID = 5, FWD = 4
+//   Clean sheets: GKP/DEF = 4, MID = 1, FWD = 0
+//   Assists: 3 pts regardless of position (handled as a constant)
+
+/** goal_points(position) — points for a goal by position string. */
+function b_goal_points(args: ScalarValue[]): ScalarValue {
+  const pos = args[0];
+  if (typeof pos !== 'string') return null;
+  switch (pos) {
+    case 'GKP': case 'DEF': return 6;
+    case 'MID': return 5;
+    case 'FWD': return 4;
+    default: return null;
+  }
+}
+
+/** cs_points(position) — points for a clean sheet by position string. */
+function b_cs_points(args: ScalarValue[]): ScalarValue {
+  const pos = args[0];
+  if (typeof pos !== 'string') return null;
+  switch (pos) {
+    case 'GKP': case 'DEF': return 4;
+    case 'MID': return 1;
+    case 'FWD': return 0;
+    default: return null;
+  }
 }
 
 // ── Registry ─────────────────────────────────────────────────────────────────
 
 export const BUILTINS: Record<string, BuiltinFn> = {
-  iff:       b_iff,
-  coalesce:  b_coalesce,
-  per90:     b_per90,
-  min:       b_min,
-  max:       b_max,
-  abs:       b_abs,
-  sqrt:      b_sqrt,
-  log:       b_log,
-  pow:       b_pow,
-  round:     b_round,
-  floor:     b_floor,
-  ceil:      b_ceil,
-  // Deferred domain lookups
-  goal_points:  deferredStub('goal_points'),
-  cs_points:    deferredStub('cs_points'),
-  assist_points: deferredStub('assist_points'),
+  iff:         b_iff,
+  coalesce:    b_coalesce,
+  per90:       b_per90,
+  min:         b_min,
+  max:         b_max,
+  abs:         b_abs,
+  sqrt:        b_sqrt,
+  log:         b_log,
+  exp:         b_exp,
+  pow:         b_pow,
+  round:       b_round,
+  floor:       b_floor,
+  ceil:        b_ceil,
+  clamp:       b_clamp,
+  isnull:      b_isnull,
+  notnull:     b_notnull,
+  goal_points: b_goal_points,
+  cs_points:   b_cs_points,
+};
+
+/**
+ * Bare-identifier runtime constants (not function calls).
+ * Corresponds to sema's KNOWN_CONSTANTS in src/catalog/functions.ts.
+ *   assist_points = 3 (FPL official scoring)
+ */
+export const CONSTANTS: Record<string, number> = {
+  assist_points: 3,
 };

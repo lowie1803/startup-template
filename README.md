@@ -5,10 +5,19 @@ A factor / alpha expression language for FPL (Fantasy Premier League) analytics.
 Users define named derived attributes ("factors") from base player data:
 
 ```
-value        = total_points / price
-xg_over      = goals_scored - expected_goals
-form_score   = z(form) + z(fixture_ease) + z(xg_over)
-captain_pick = rank(form_score, position)
+# Scalar: per-row arithmetic and built-in functions
+value   = total_points / price
+xg_over = goals_scored - expected_goals
+nailed  = iff(minutes > 1500, 1, 0)
+ppg90   = per90(total_points, minutes)
+xpts    = expected_goals * goal_points(position) + expected_assists * assist_points
+
+# Cross-sectional: whole-column operations (rank, z-scores, percentiles)
+form_rank = rank(form, position)                           # rank within position
+captain   = z(form) + z(6 - fdr) + z(xg_over)            # captaincy z-stack
+differential = rank(form) * (1 - selected_by_percent/100) # under-owned high-form
+
+# Time-series (planned — backlog 011):  momentum = ts_delta(series(points), 3)
 ```
 
 Factors compose via a dependency graph (topological sort). The engine classifies each factor
@@ -29,9 +38,14 @@ npm run build            # emit dist/ (ESM + CJS + .d.ts)
 npm run snapshot         # fetch FPL data → datasets/fpl-2025-26/raw/
 ```
 
-> **Engine status:** the public API types and signatures are defined (`src/index.ts`) but the
-> engine implementation is pending — `parse()`, `analyze()`, and `evaluate()` currently throw
-> `'fplang engine not yet implemented'`. `listFields()` safely returns `[]`.
+> **Engine status:** 222 tests pass. `parse()`, `analyze()`, and `evaluate()` are fully
+> implemented. The runtime evaluates arithmetic/comparison operators, **16 scalar built-ins**
+> (`iff`, `coalesce`, `per90`, `clamp`, `isnull`, `notnull`, `min`, `max`, `abs`, `sqrt`,
+> `log`, `exp`, `pow`, `round`, `floor`, `ceil`), **FPL domain lookups** (`goal_points`,
+> `cs_points`, `assist_points`), and all **6 cross-sectional functions** (`rank`, `z`, `zscore`,
+> `quantile`, `scale`, `demean`). Time-series functions (`ts_mean`, `ts_delta`, etc. — backlog
+> 011) are parsed and type-checked but not yet evaluable. `listFields()` returns all 35 FPL
+> fields.
 
 ---
 
@@ -71,6 +85,9 @@ const fields = listFields();
 | `docs/07-features.md` | Two-panel split: language is computation only |
 | `docs/08-editor.md` | Editor contract (span-aware, CodeMirror substrate) |
 | `docs/09-roadmap.md` | Tiers 0–3 build roadmap |
+| `docs/10-expected-minutes.md` | `expected_minutes(n)` / `xgw_pts(n)` parameterized factors |
+| `docs/11-data-sources.md` | Multi-source data: `DataSource` contract, qualified names, Panel merge |
+| `docs/12-dataset-standard.md` | Dataset well-formedness: define→fill→validate pipeline |
 
 ---
 
@@ -127,19 +144,27 @@ Each of these is a targeted swap, not a rewrite, because the seam is set up now.
 src/
   lexer/    token.ts, lexer.ts          (span-aware tokenizer)
   parser/   ast.ts, parser.ts           (Pratt parser, span-annotated AST)
-  sema/     classify.ts, depGraph.ts, typecheck.ts
-  runtime/  panel.ts, compile.ts, builtins.ts, crossSectional.ts, timeSeries.ts, engine.ts
-  catalog/  fields.ts, builtinFactors.ts
-  index.ts                              (public API — see above)
+  sema/     depgraph.ts, classify.ts, typecheck.ts, walk.ts
+  runtime/  panel.ts, values.ts, compile.ts, builtins.ts, evaluate.ts, merge.ts
+  sources/  types.ts, registry.ts, fill.ts   (DataSource contract + SourceRegistry)
+  catalog/  fields.ts, functions.ts
+  types.ts, validate.ts, index.ts       (public API — see above)
 data/
-  snapshot-fpl.mjs    FPL data fetcher (run: npm run snapshot)
-  loadSnapshot.ts     columnar Panel loader (pending)
+  snapshot-fpl.mjs    FPL data fetcher (npm run snapshot)
+  loadSnapshot.ts     columnar Panel from offline bootstrap snapshot
+  fplSource.ts        built-in 'fpl' DataSource (wraps loadSnapshot)
+  sample-panel.ts     vendored 16-player panel (offline, used by REPL + tests)
 bin/
-  run.ts              file runner (pending)
-  repl.ts             interactive REPL (pending)
-  llm-harness.ts      LLM generation harness (pending)
-factors/              sample factor libraries (.factors files)
-docs/                 language spec (11 design docs)
+  repl.ts             interactive REPL (npm run repl)
+  validate-source.ts  DataSource well-formedness checker (npm run validate-source)
+  run.ts              file runner — pending (backlog 009)
+  llm-harness.ts      LLM generation harness — pending (backlog 013)
+examples/
+  quickstart.ts       runnable demo: evaluate factors against sample panel
+  sources.ts          runnable demo: load/fill/validate/merge data sources
+  working.factors     curated factor library (scalar only — works today)
+factors/              full factor libraries (scoring/captain/momentum)
+docs/                 language spec (12 design docs)
 datasets/             offline FPL snapshot (gitignored raw data)
 .project/             backlog + ADRs
 ```

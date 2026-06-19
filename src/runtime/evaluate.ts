@@ -15,6 +15,7 @@ import { compileExpr, type RowFn } from './compile.js';
 import type { ScalarValue } from './builtins.js';
 import { buildDepGraph, topoSort, factorNameSet } from '../sema/depgraph.js';
 import type { Assignment } from '../parser/ast.js';
+import { materializeXS } from './crossSectional.js';
 
 export interface EvaluateResult {
   panel: Panel;
@@ -80,6 +81,15 @@ export function evaluateFactors(
     ...panel.columnNames(),
   ]);
 
+  // XS materializer state — unique synthetic column names + cleanup set
+  let xsCounter = 0;
+  const syntheticNames = new Set<string>();
+  function nextXsName(): string {
+    const name = `__xs_${xsCounter++}`;
+    syntheticNames.add(name);
+    return name;
+  }
+
   const factorNames: string[] = [];
 
   // ── Evaluate each def in topo order, skip cycle members ──────────────────
@@ -91,9 +101,24 @@ export function evaluateFactors(
 
     knownNames.add(def.name);
 
+    // Pre-pass: materialise XS calls (rank/z/…) into synthetic columns so
+    // the row-wise compiler only sees plain Identifiers.
+    let expr = def.expr;
+    try {
+      expr = materializeXS(expr, workingPanel, knownNames, nextXsName);
+    } catch (err) {
+      diagnostics.push({
+        message: err instanceof Error ? err.message : String(err),
+        severity: 'error',
+        from: def.expr.span.from,
+        to: def.expr.span.to,
+      });
+      continue;
+    }
+
     let rowFn: RowFn;
     try {
-      rowFn = compileExpr(def.expr, workingPanel, knownNames);
+      rowFn = compileExpr(expr, workingPanel, knownNames);
     } catch (err) {
       diagnostics.push({
         message: err instanceof Error ? err.message : String(err),
@@ -129,7 +154,11 @@ export function evaluateFactors(
     factorNames.push(def.name);
   }
 
-  return { panel: workingPanel, factorNames, diagnostics };
+  // Strip synthetic XS columns before returning — they are implementation
+  // details and must not appear in the public output panel.
+  const outputPanel = clonePanelExcluding(workingPanel, syntheticNames);
+
+  return { panel: outputPanel, factorNames, diagnostics };
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -138,6 +167,17 @@ export function evaluateFactors(
 function clonePanel(src: Panel): Panel {
   const init: Record<string, Float64Array | string[]> = {};
   for (const name of src.columnNames()) {
+    const col = src.getColumn(name);
+    if (col !== undefined) init[name] = col;
+  }
+  return new Panel(src.rowCount, init);
+}
+
+/** Like clonePanel but excludes the given names. Used to strip synthetic columns. */
+function clonePanelExcluding(src: Panel, exclude: Set<string>): Panel {
+  const init: Record<string, Float64Array | string[]> = {};
+  for (const name of src.columnNames()) {
+    if (exclude.has(name)) continue;
     const col = src.getColumn(name);
     if (col !== undefined) init[name] = col;
   }

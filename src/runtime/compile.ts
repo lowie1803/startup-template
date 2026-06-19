@@ -11,7 +11,7 @@
 import type { Expr } from '../parser/ast.js';
 import { Panel } from './panel.js';
 import { sanitize } from './values.js';
-import { BUILTINS, type ScalarValue } from './builtins.js';
+import { BUILTINS, CONSTANTS, type ScalarValue } from './builtins.js';
 
 export type RowFn = (i: number) => ScalarValue;
 
@@ -42,6 +42,11 @@ export function compileExpr(
 
     case 'Identifier': {
       const name = expr.name;
+      // Bare constants (assist_points = 3, etc.) — resolve without panel lookup
+      if (name in CONSTANTS) {
+        const v = CONSTANTS[name]!;
+        return () => v;
+      }
       if (!knownNames.has(name) && !(name in BUILTINS)) {
         throw new Error(`Unknown name '${name}' at ${expr.span.from}–${expr.span.to}`);
       }
@@ -106,6 +111,14 @@ export function compileExpr(
           return null;
         }
       };
+    }
+
+    case 'QualifiedName': {
+      // At runtime, the panel stores columns by their bare FieldDef.name.
+      // 'fpl.goals_scored' → column 'goals_scored'; 'understat.xg' → column 'xg'.
+      // Sema has already validated source+field; just look up the field name.
+      const col = expr.field;
+      return (i) => panel.getValue(col, i);
     }
   }
 }

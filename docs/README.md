@@ -79,7 +79,11 @@ The DataLab has a hard split:
 | [`07-features.md`](07-features.md) | Factor library lifecycle, persistence, surfaces, engine unification |
 | [`08-editor.md`](08-editor.md) | Editor UX: autocomplete, hover, semantic lint, snippets, live preview |
 | [`09-roadmap.md`](09-roadmap.md) | Tiers / phasing, deferred capabilities, backlog links |
+| [`10-expected-minutes.md`](10-expected-minutes.md) | `expected_minutes(n)` and `xgw_pts(n)` — parameterized GW-window factors |
 | [`11-data-sources.md`](11-data-sources.md) | Multi-source data: the `DataSource` contract, namespace syntax, Panel merge, authoring guide |
+| [`12-dataset-standard.md`](12-dataset-standard.md) | Dataset well-formedness: the source→define→clean→fill→load→validate pipeline, `FillPolicy` catalog, `validateDataset()` |
+| [`13-source-discovery.md`](13-source-discovery.md) | Source discovery profile template — the capability manifest every new source must produce before integration |
+| [`14-field-dictionary.md`](14-field-dictionary.md) | Combined field catalog: all FPL + football-data fields, status (live/proposed), and cross-source factor opportunities |
 
 ---
 

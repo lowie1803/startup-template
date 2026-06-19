@@ -47,6 +47,24 @@ export interface Call {
   span: SourceSpan;
 }
 
+/**
+ * A qualified field reference: `source.field` (e.g. `understat.xg`).
+ * The `fpl` source is the default; its fields may also be referenced bare.
+ */
+export interface QualifiedName {
+  kind: 'QualifiedName';
+  /** The source identifier (e.g. 'understat', 'fpl'). */
+  source: string;
+  /** The field name within that source (e.g. 'xg'). */
+  field: string;
+  /** Span of the source identifier alone. */
+  sourceSpan: SourceSpan;
+  /** Span of the field identifier alone. */
+  fieldSpan: SourceSpan;
+  /** Full span from source start to field end. */
+  span: SourceSpan;
+}
+
 /** Union of all expression node types. */
 export type Expr =
   | NumberLit
@@ -54,7 +72,8 @@ export type Expr =
   | Identifier
   | Unary
   | Binary
-  | Call;
+  | Call
+  | QualifiedName;
 
 // ── Top-level definition ─────────────────────────────────────────────────────
 

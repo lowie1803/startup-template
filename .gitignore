@@ -14,6 +14,11 @@ dist
 # Offline snapshot data — large, regenerate with: npm run snapshot
 datasets/**/raw/
 
+# API tokens / credential emails — never commit
+*.eml
+.env
+.env.*
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

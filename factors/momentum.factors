@@ -1,6 +1,10 @@
 # ── Form & momentum ────────────────────────────────────────────────────────────
 # Tier 3 factors — require __history (from element-summary snapshot).
 # All ts_* calls: ts_mean/ts_delta/ts_sum/ts_std/ts_max/ts_min(series(field), n)
+#
+# ⚠ PENDING: TS functions (ts_mean/ts_delta/ts_std/etc.) and series() are parsed
+# and typechecked but not yet evaluable — backlog 011. This file will not
+# evaluate until 011 is implemented.
 
 # Own form measure (tunable window vs FPL's fixed last-5)
 form_ts3     = ts_mean(series(points), 3)        # 3-GW rolling average

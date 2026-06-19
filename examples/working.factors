@@ -1,0 +1,42 @@
+# ── fplang: factors that evaluate today ────────────────────────────────────────
+# All expressions here use only the implemented runtime subset:
+#   operators:  + - * / %  == != < > <= >=  (unary -)
+#   builtins:   iff, coalesce, per90, min, max, abs, sqrt, log, pow, round, floor, ceil
+#
+# Cross-sectional (rank/z/…) → backlog 010
+# Time-series (ts_mean/ts_delta/…) → backlog 011
+# Domain lookups (goal_points/cs_points/assist_points) → backlog 018
+#
+# Use this file as input to bin/run.ts once backlog 009 is done:
+#   npm run run -- examples/working.factors
+# For now, it is loaded by examples/quickstart.ts.
+
+# ── Value ───────────────────────────────────────────────────────────────────────
+value        = total_points / price              # points per £m (staple value metric)
+ppg90        = per90(total_points, minutes)      # scoring rate, not accumulation
+
+# ── Expected stats ──────────────────────────────────────────────────────────────
+xg_over      = goals_scored - expected_goals     # finishing luck vs model
+xa_over      = assists - expected_assists        # assist luck vs model
+xgi_over     = (goals_scored + assists) - expected_goal_involvements
+
+# ── Availability / fitness ──────────────────────────────────────────────────────
+available    = coalesce(chance_of_playing_next_round, 100) / 100
+nailed       = iff(minutes > 1500, 1, 0)         # strong starter heuristic
+
+# ── Bonus / BPS ─────────────────────────────────────────────────────────────────
+bps90        = per90(bps, minutes)
+bonus_share  = iff(total_points > 0, bonus / total_points, 0)
+
+# ── Transfer signals ─────────────────────────────────────────────────────────────
+net_transfers  = transfers_in_event - transfers_out_event
+
+# ── GK-specific ──────────────────────────────────────────────────────────────────
+saves_pts    = iff(position == "GKP", saves / 3, 0)
+
+# ── ICT ──────────────────────────────────────────────────────────────────────────
+ict_value    = ict_index / price
+
+# ── DefCon (2025-26 rule) ─────────────────────────────────────────────────────────
+defcon_rate  = defensive_contribution_per_90
+cbi90        = per90(clearances_blocks_interceptions, minutes)

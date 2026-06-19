@@ -91,7 +91,8 @@ export function analyze(text: string, fields: FieldDef[]): AnalysisResult {
 
   if (defs.length === 0) {
     const completions = [
-      ...fields.map(f => f.name),
+      ...fields.filter(f => f.source === 'fpl').map(f => f.name),
+      ...fields.filter(f => f.source !== 'fpl').map(f => `${f.source}.${f.name}`),
       ...Array.from(FN_MAP.keys()),
       ...Array.from(KNOWN_CONSTANTS),
     ];
@@ -130,9 +131,12 @@ export function analyze(text: string, fields: FieldDef[]): AnalysisResult {
   const typeDiags = typecheck(defs, fields, names);
   allDiags.push(...typeDiags);
 
-  // Completions: base fields + factor names + function catalog + constants
+  // Completions: bare fpl fields + source.field for non-fpl sources + factor names + functions + constants
   const completions: string[] = [
-    ...fields.map(f => f.name),
+    // Bare names: fpl fields only (other sources require source.field syntax)
+    ...fields.filter(f => f.source === 'fpl').map(f => f.name),
+    // Qualified names for non-fpl sources
+    ...fields.filter(f => f.source !== 'fpl').map(f => `${f.source}.${f.name}`),
     ...docOrder,
     ...Array.from(FN_MAP.keys()),
     ...Array.from(KNOWN_CONSTANTS),

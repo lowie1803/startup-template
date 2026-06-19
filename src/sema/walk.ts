@@ -5,7 +5,7 @@
  * here so the switch over Expr.kind lives in one place.
  */
 
-import type { Expr, Call } from '../parser/ast.js';
+import type { Expr, Call, QualifiedName } from '../parser/ast.js';
 import type { SourceSpan } from '../types.js';
 
 export interface NameRef {
@@ -25,7 +25,8 @@ export function walkExpr(expr: Expr, visit: (node: Expr) => boolean | void): voi
     case 'NumberLit':
     case 'StringLit':
     case 'Identifier':
-      break;
+    case 'QualifiedName':
+      break; // leaf nodes — no children to descend into
     case 'Unary':
       walkExpr(expr.expr, visit);
       break;
@@ -60,4 +61,23 @@ export function collectCalls(expr: Expr): Call[] {
     if (node.kind === 'Call') calls.push(node);
   });
   return calls;
+}
+
+export interface QualifiedRef {
+  source: string;
+  field: string;
+  span: SourceSpan;
+}
+
+/**
+ * Collect all QualifiedName nodes reachable from `expr`.
+ */
+export function collectQualifiedNames(expr: Expr): QualifiedRef[] {
+  const refs: QualifiedRef[] = [];
+  walkExpr(expr, node => {
+    if (node.kind === 'QualifiedName') {
+      refs.push({ source: node.source, field: node.field, span: node.span });
+    }
+  });
+  return refs;
 }

@@ -22,6 +22,7 @@ const ONE_CHAR: Record<string, TokenType> = {
   '(': TT.LPAREN,
   ')': TT.RPAREN,
   ',': TT.COMMA,
+  '.': TT.DOT,
 };
 
 function isDigit(ch: string): boolean {

@@ -1,17 +1,19 @@
 /**
  * Typecheck pass — produces span-accurate Diagnostic[] for semantic errors.
- * Implements backlog item 005.
+ * Implements backlog items 005 and 020.
  *
  * Checks performed (in order):
  *   1. Duplicate factor names
- *   2. Unknown identifiers (not a base field, not a factor, not a known constant)
- *   3. Unknown function calls (not in the function catalog)
- *   4. Arity violations
- *   5. series() used outside the first argument of a ts_* call
- *   6. String operands in arithmetic expressions (+, -, *, /, %, unary -)
+ *   2. Unknown identifiers (not an fpl-source base field, not a factor, not a known constant)
+ *   3. Source-reserved bare identifiers (bare use of a source name → "use source.field")
+ *   4. Unknown function calls (not in the function catalog)
+ *   5. Arity violations
+ *   6. series() used outside the first argument of a ts_* call
+ *   7. String operands in arithmetic expressions (+, -, *, /, %, unary -)
+ *   8. QualifiedName: unknown source or unknown field within source
  */
 
-import type { Assignment, Expr, Binary, Unary, Call } from '../parser/ast.js';
+import type { Assignment, Expr, Binary, QualifiedName } from '../parser/ast.js';
 import type { Diagnostic, FieldDef } from '../types.js';
 import { FN_MAP, KNOWN_CONSTANTS, TS_FUNCS } from '../catalog/functions.js';
 import { findDuplicateNames } from './depgraph.js';
@@ -39,6 +41,7 @@ function inferType(
       const factType = factorTypes.get(expr.name);
       return factType ?? 'number';
     }
+    case 'QualifiedName': return 'number'; // qualified refs are always numeric fields
     case 'Unary': return 'number'; // unary minus only valid on numbers
     case 'Binary': return 'number';
     case 'Call': {
@@ -54,7 +57,7 @@ function inferType(
  * Run all typecheck rules over the factor definitions.
  *
  * @param defs        Parsed definitions.
- * @param fields      Base field catalog.
+ * @param fields      Base field catalog (all sources).
  * @param factorNames Set of all factor names defined in this document.
  */
 export function typecheck(
@@ -64,10 +67,26 @@ export function typecheck(
 ): Diagnostic[] {
   const diags: Diagnostic[] = [];
 
+  // Types map for ALL fields (used by inferType for string-arithmetic checks)
   const fieldTypes = new Map<string, 'number' | 'string' | 'bool'>(
     fields.map(f => [f.name, f.type]),
   );
-  const fieldNames = new Set(fields.map(f => f.name));
+
+  // Bare identifier resolution: only fpl-source fields resolve without a prefix
+  const fplFieldNames = new Set(
+    fields.filter(f => f.source === 'fpl').map(f => f.name),
+  );
+
+  // Source → Set<fieldName> map for qualified name resolution (all sources)
+  const sourceFieldMap = new Map<string, Set<string>>();
+  for (const f of fields) {
+    let set = sourceFieldMap.get(f.source);
+    if (!set) { set = new Set(); sourceFieldMap.set(f.source, set); }
+    set.add(f.name);
+  }
+
+  // Known source identifiers (for the "bare source name" check)
+  const knownSources = new Set(sourceFieldMap.keys());
 
   // Track inferred factor types as we process defs (document order approximation)
   const factorTypes = new Map<string, ValType>();
@@ -83,7 +102,16 @@ export function typecheck(
   }
 
   for (const def of defs) {
-    checkExpr(def.expr, fieldNames, fieldTypes, factorNames, factorTypes, diags);
+    checkExpr(
+      def.expr,
+      fplFieldNames,
+      fieldTypes,
+      factorNames,
+      factorTypes,
+      sourceFieldMap,
+      knownSources,
+      diags,
+    );
 
     // Record this factor's inferred type for downstream factors
     factorTypes.set(def.name, inferType(def.expr, fieldTypes, factorTypes));
@@ -94,10 +122,12 @@ export function typecheck(
 
 function checkExpr(
   expr: Expr,
-  fieldNames: ReadonlySet<string>,
+  fplFieldNames: ReadonlySet<string>,
   fieldTypes: ReadonlyMap<string, 'number' | 'string' | 'bool'>,
   factorNames: ReadonlySet<string>,
   factorTypes: ReadonlyMap<string, ValType>,
+  sourceFieldMap: ReadonlyMap<string, ReadonlySet<string>>,
+  knownSources: ReadonlySet<string>,
   diags: Diagnostic[],
   insideTsFn = false, // are we directly inside a ts_* call's argument list?
   isTsFirstArg = false, // is this the first argument of a ts_* call?
@@ -109,8 +139,19 @@ function checkExpr(
 
     case 'Identifier': {
       const name = expr.name;
+      // 3. Bare source name used without a field selector
+      if (knownSources.has(name) && !fplFieldNames.has(name) && !factorNames.has(name)) {
+        diags.push({
+          message: `'${name}' is a source identifier; use ${name}.fieldName`,
+          severity: 'error',
+          from: expr.span.from,
+          to: expr.span.to,
+        });
+        break;
+      }
+      // 2. Unknown bare identifier
       if (
-        !fieldNames.has(name) &&
+        !fplFieldNames.has(name) &&
         !factorNames.has(name) &&
         !KNOWN_CONSTANTS.has(name) &&
         !FN_MAP.has(name)
@@ -120,6 +161,27 @@ function checkExpr(
           severity: 'error',
           from: expr.span.from,
           to: expr.span.to,
+        });
+      }
+      break;
+    }
+
+    case 'QualifiedName': {
+      // 8. Check source + field
+      const sourceFields = sourceFieldMap.get(expr.source);
+      if (!sourceFields) {
+        diags.push({
+          message: `Unknown source '${expr.source}'`,
+          severity: 'error',
+          from: expr.sourceSpan.from,
+          to: expr.sourceSpan.to,
+        });
+      } else if (!sourceFields.has(expr.field)) {
+        diags.push({
+          message: `Unknown field '${expr.field}' in source '${expr.source}'`,
+          severity: 'error',
+          from: expr.fieldSpan.from,
+          to: expr.fieldSpan.to,
         });
       }
       break;
@@ -136,21 +198,21 @@ function checkExpr(
           to: expr.span.to,
         });
       }
-      checkExpr(expr.expr, fieldNames, fieldTypes, factorNames, factorTypes, diags);
+      checkExpr(expr.expr, fplFieldNames, fieldTypes, factorNames, factorTypes, sourceFieldMap, knownSources, diags);
       break;
     }
 
     case 'Binary': {
       checkBinary(expr, fieldTypes, factorTypes, diags);
-      checkExpr(expr.left, fieldNames, fieldTypes, factorNames, factorTypes, diags);
-      checkExpr(expr.right, fieldNames, fieldTypes, factorNames, factorTypes, diags);
+      checkExpr(expr.left, fplFieldNames, fieldTypes, factorNames, factorTypes, sourceFieldMap, knownSources, diags);
+      checkExpr(expr.right, fplFieldNames, fieldTypes, factorNames, factorTypes, sourceFieldMap, knownSources, diags);
       break;
     }
 
     case 'Call': {
       const sig = FN_MAP.get(expr.callee);
 
-      // 5. series() outside a ts_* first-arg position
+      // 6. series() outside a ts_* first-arg position
       if (expr.callee === 'series' && !isTsFirstArg) {
         diags.push({
           message: `'series()' can only appear as the first argument of a ts_* function`,
@@ -160,7 +222,7 @@ function checkExpr(
         });
       }
 
-      // 3. Unknown function
+      // 4. Unknown function
       if (!sig) {
         diags.push({
           message: `Unknown function '${expr.callee}'`,
@@ -170,12 +232,12 @@ function checkExpr(
         });
         // Still walk args for nested errors
         for (const arg of expr.args) {
-          checkExpr(arg, fieldNames, fieldTypes, factorNames, factorTypes, diags);
+          checkExpr(arg, fplFieldNames, fieldTypes, factorNames, factorTypes, sourceFieldMap, knownSources, diags);
         }
         break;
       }
 
-      // 4. Arity
+      // 5. Arity
       const { minArgs, maxArgs } = sig;
       if (expr.args.length < minArgs || expr.args.length > maxArgs) {
         const range = maxArgs === Infinity
@@ -195,10 +257,12 @@ function checkExpr(
         const isFirst = i === 0;
         checkExpr(
           expr.args[i]!,
-          fieldNames,
+          fplFieldNames,
           fieldTypes,
           factorNames,
           factorTypes,
+          sourceFieldMap,
+          knownSources,
           diags,
           isTsFn,       // insideTsFn
           isTsFn && isFirst, // isTsFirstArg

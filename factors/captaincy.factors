@@ -1,0 +1,113 @@
+# ── fplang: captaincy & transfer alpha library ─────────────────────────────────
+#
+# Self-contained factor library covering the metrics FPL managers actually use:
+# xPts decomposition, z-stacks for captaincy and transfers, differentials,
+# template risk, and the 2025-26 Defensive Contribution composite.
+#
+# Tiers used:
+#   Tier 0  per-row arithmetic (always available)
+#   Tier 1  position helpers: goal_points / cs_points / assist_points
+#   Tier 2  cross-sectional: rank / z / zscore / quantile / scale / demean
+#
+# Tier 3 (time-series: ts_mean / ts_delta etc.) is in factors/momentum.factors
+# and requires backlog 011.
+#
+# Run via:
+#   npm run repl   (loads buildSamplePanel interactively)
+#   npm run example:community   (prints community leaderboards)
+#   npm run run -- factors/captaincy.factors   (once backlog 009 is implemented)
+
+# ── Scoring primitives (Tier 0–1) ──────────────────────────────────────────────
+# FPL scoring rules: GKP/DEF goal = 6pts, MID = 5pts, FWD = 4pts
+#                    GKP/DEF clean sheet = 4pts, MID = 1pt, FWD = 0pts
+#                    Assists = 3pts (all positions)
+
+point_from_goals   = goals_scored * goal_points(position)
+point_from_assists = assists * assist_points
+point_from_cs      = clean_sheets * cs_points(position)
+point_from_ga      = point_from_goals + point_from_assists
+
+# ── Expected points — attacking only ───────────────────────────────────────────
+# Core community metric: "what should this player have scored?"
+# Deviation from xPts signals luck (positive = over-performer, will regress).
+
+xpts_attack  = expected_goals * goal_points(position) + expected_assists * assist_points
+attack_over  = point_from_ga - xpts_attack     # + = outperforming xG → regression risk
+xg_over      = goals_scored - expected_goals   # pure finishing luck
+xa_over      = assists - expected_assists      # assist luck
+xgi_over     = (goals_scored + assists) - expected_goal_involvements
+
+# ── Value / rate metrics (Tier 0) ─────────────────────────────────────────────
+value        = total_points / price              # points per £m — the staple
+ppg90        = per90(total_points, minutes)      # rate, not accumulation
+ict_value    = ict_index / price                 # involvement per £m
+
+# ── Availability / fitness ─────────────────────────────────────────────────────
+available    = coalesce(chance_of_playing_next_round, 100) / 100
+nailed       = iff(minutes > 1500, 1, 0)         # strong starter heuristic (≥17 GWs)
+
+# ── Transfer signals ──────────────────────────────────────────────────────────
+net_tx       = transfers_in_event - transfers_out_event
+
+# ── Fixture ease (invert FDR: 1=hardest→ fixture_ease=5; 5=hardest→ ease=1) ───
+fixture_ease = 6 - fdr
+
+# ── Bonus / BPS ───────────────────────────────────────────────────────────────
+bps90        = per90(bps, minutes)
+bonus_share  = iff(total_points > 0, bonus / total_points, 0)
+
+# ── GK-specific ───────────────────────────────────────────────────────────────
+saves_pts    = iff(position == "GKP", saves / 3, 0)
+gk_value     = iff(position == "GKP", (saves_pts + point_from_cs) / price, 0)
+
+# ── DefCon 2025-26 ────────────────────────────────────────────────────────────
+# The 2025-26 rule rewards defenders/GKPs for clearances, blocks, interceptions.
+defcon_rate  = defensive_contribution_per_90
+cbi90        = per90(clearances_blocks_interceptions, minutes)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Cross-sectional factors (Tier 2) — require XS runtime (backlog 010) ✅
+# These use z() and rank() across all players or within a positional group.
+# ══════════════════════════════════════════════════════════════════════════════
+
+# ── Captaincy z-stack ─────────────────────────────────────────────────────────
+# Community favourite: combine normalised form, fixture ease, and finishing luck.
+# Positive captain score → strong candidate; higher = better.
+captain      = z(form) + z(fixture_ease) + z(xg_over)
+
+# Position-specific captain signal (null outside target position)
+captain_mid  = iff(position == "MID", z(form) + z(fixture_ease) + z(xg_over), null)
+captain_fwd  = iff(position == "FWD", z(form) + z(fixture_ease) + z(xg_over), null)
+
+# ── Transfer target stack ─────────────────────────────────────────────────────
+# Who to bring in: form + fixture + value + fitness
+transfer_target = z(form) + z(fixture_ease) + z(value) + z(available)
+
+# ── Regression sell signal ────────────────────────────────────────────────────
+# High positive = likely to decline: poor form, heavy outflows, over-performing xG
+sell_signal  = z(-form) + z(-net_tx) + z(attack_over)
+
+# ── Differential score ───────────────────────────────────────────────────────
+# High form rank × low ownership = good differential
+# The community sweet spot: high-rank, low-TSB (team-of-season-beaters)
+differential = rank(form) * (1 - selected_by_percent / 100)
+
+# EO edge: high expected output, not owned by the crowd
+eo_edge      = z(xpts_attack) - z(selected_by_percent)
+
+# ── Template risk ─────────────────────────────────────────────────────────────
+# TSB > 30%: must-own players — not owning costs ground each week
+template_risk = iff(selected_by_percent > 30, 1, 0)
+
+# ── Price-rise / price-fall pressure ─────────────────────────────────────────
+rise_pressure = rank(net_tx)        # high net transfers in → likely to rise in price
+fall_pressure = rank(-net_tx)       # net transfers out → price fall risk
+
+# ── Value and form rank (within position) ────────────────────────────────────
+value_rank   = rank(value, position)
+form_rank    = rank(form, position)
+bps_rank     = rank(bps90, position)
+
+# ── DefCon composite (defensive high-floor picks) ────────────────────────────
+# High z-score = elite defensive contributor with clean-sheet upside
+defcon_floor = z(defcon_rate) + z(point_from_cs)

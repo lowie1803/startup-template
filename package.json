@@ -24,7 +24,11 @@
     "build":    "tsup src/index.ts --format esm,cjs --dts --out-dir dist",
     "typecheck":"tsc --noEmit",
     "lint":     "eslint .",
-    "snapshot": "node data/snapshot-fpl.mjs"
+    "snapshot": "node data/snapshot-fpl.mjs",
+    "validate-source": "tsx bin/validate-source.ts",
+    "example":           "tsx examples/quickstart.ts",
+    "example:community": "tsx examples/community.ts",
+    "gen:dictionary":    "tsx scripts/build-field-dictionary.ts"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.0.0",

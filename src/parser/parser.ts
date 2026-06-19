@@ -1,6 +1,6 @@
 import type { Diagnostic } from '../types.js';
 import { TT, type Token, type TokenType } from '../lexer/token.js';
-import type { Expr, Assignment, BinaryOp } from './ast.js';
+import type { Expr, Assignment, BinaryOp, QualifiedName } from './ast.js';
 
 // ── Precedence levels (Pratt) ─────────────────────────────────────────────────
 
@@ -63,6 +63,11 @@ class TokenStream {
   eat(type: TokenType): Token | undefined {
     if (this.check(type)) return this.advance();
     return undefined;
+  }
+
+  /** Look at the token at pos+1 without advancing. */
+  peekNext(): Token {
+    return this.tokens[this.pos + 1] ?? EOF_TOKEN;
   }
 }
 
@@ -240,7 +245,7 @@ function parsePrefix(
     return { kind: 'StringLit', value: tok.value, span: tok.span };
   }
 
-  // Identifier or function call
+  // Identifier, function call, or qualified name (source.field)
   if (tok.type === TT.IDENT) {
     stream.advance();
     // Is it a call?
@@ -273,6 +278,20 @@ function parsePrefix(
         args,
         span: { from: tok.from, to },
       };
+    }
+    // Is it a qualified name: ident DOT ident?
+    if (stream.check(TT.DOT) && stream.peekNext().type === TT.IDENT) {
+      stream.advance(); // consume '.'
+      const fieldTok = stream.advance(); // consume field identifier
+      const qn: QualifiedName = {
+        kind: 'QualifiedName',
+        source: tok.value,
+        field: fieldTok.value,
+        sourceSpan: tok.span,
+        fieldSpan: fieldTok.span,
+        span: { from: tok.from, to: fieldTok.to },
+      };
+      return qn;
     }
     // Plain identifier
     return { kind: 'Identifier', name: tok.value, span: tok.span };

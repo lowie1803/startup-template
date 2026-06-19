@@ -2,8 +2,11 @@
 # Tier 2 (cross-sectional): rank/z/zscore/quantile/scale/demean.
 # These compose disparate metrics onto a common scale for ranking.
 #
-# These factors depend on scoring.factors primitives — load them first or combine files.
-# In the file runner: node run.mjs factors/scoring.factors factors/captain.factors
+# These factors depend on scoring.factors primitives — load them first or combine.
+# In the file runner (once bin/run.ts is implemented — backlog 009):
+#   npm run run -- factors/scoring.factors factors/captain.factors
+#
+# For a self-contained runnable version see factors/captaincy.factors.
 
 # ── Cross-sectional ranking ─────────────────────────────────────────────────────
 value_rank     = rank(value, position)           # best value within position (0=worst, 1=best)

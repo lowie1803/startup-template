@@ -1,0 +1,859 @@
+[
+  {
+    "name": "id",
+    "source": "fpl",
+    "type": "number",
+    "description": "FPL element ID — unique integer per player across the season",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      1,
+      9999
+    ],
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "web_name",
+    "source": "fpl",
+    "type": "string",
+    "description": "Short display name as shown on the FPL website (e.g. \"Salah\")",
+    "fill": {
+      "kind": "none"
+    },
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "position",
+    "source": "fpl",
+    "type": "string",
+    "description": "Position: GKP, DEF, MID, or FWD (derived from element_type 1–4)",
+    "fill": {
+      "kind": "none"
+    },
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "team",
+    "source": "fpl",
+    "type": "string",
+    "description": "Team short name, e.g. \"LIV\", \"ARS\", \"MCI\"",
+    "fill": {
+      "kind": "none"
+    },
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "price",
+    "source": "fpl",
+    "type": "number",
+    "unit": "£m",
+    "description": "Current price in £m (now_cost / 10)",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      3,
+      20
+    ],
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "selected_by_percent",
+    "source": "fpl",
+    "type": "number",
+    "unit": "%",
+    "description": "Ownership as a percentage of all FPL managers",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      0,
+      100
+    ],
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "total_points",
+    "source": "fpl",
+    "type": "number",
+    "description": "Season total FPL points",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      0,
+      400
+    ],
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "form",
+    "source": "fpl",
+    "type": "number",
+    "description": "FPL rolling form score — average points over the last 4 gameweeks",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      0,
+      20
+    ],
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "bps",
+    "source": "fpl",
+    "type": "number",
+    "description": "Bonus point system total for the season",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      0,
+      2000
+    ],
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "bonus",
+    "source": "fpl",
+    "type": "number",
+    "description": "Total bonus points earned this season (1–3 per game)",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      0,
+      200
+    ],
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "ict_index",
+    "source": "fpl",
+    "type": "number",
+    "description": "ICT Index — composite of influence, creativity, and threat scores",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      0,
+      500
+    ],
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "minutes",
+    "source": "fpl",
+    "type": "number",
+    "unit": "min",
+    "description": "Total minutes played this season",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      0,
+      3780
+    ],
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "chance_of_playing_next_round",
+    "source": "fpl",
+    "type": "number",
+    "unit": "%",
+    "description": "Probability of playing next GW (0–100). Null in the API means fully fit; filled to 100",
+    "fill": {
+      "kind": "constant",
+      "value": 100
+    },
+    "range": [
+      0,
+      100
+    ],
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "goals_scored",
+    "source": "fpl",
+    "type": "number",
+    "description": "Goals scored this season",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      0,
+      50
+    ],
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "assists",
+    "source": "fpl",
+    "type": "number",
+    "description": "Assists this season",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      0,
+      30
+    ],
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "clean_sheets",
+    "source": "fpl",
+    "type": "number",
+    "description": "Clean sheets this season",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      0,
+      38
+    ],
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "saves",
+    "source": "fpl",
+    "type": "number",
+    "description": "Goalkeeper saves this season (3 saves = 1 FPL point)",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      0,
+      300
+    ],
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "goals_conceded",
+    "source": "fpl",
+    "type": "number",
+    "description": "Goals conceded this season",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      0,
+      100
+    ],
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "own_goals",
+    "source": "fpl",
+    "type": "number",
+    "description": "Own goals this season",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      0,
+      10
+    ],
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "penalties_saved",
+    "source": "fpl",
+    "type": "number",
+    "description": "Penalties saved this season",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      0,
+      10
+    ],
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "penalties_missed",
+    "source": "fpl",
+    "type": "number",
+    "description": "Penalties missed this season",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      0,
+      10
+    ],
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "yellow_cards",
+    "source": "fpl",
+    "type": "number",
+    "description": "Yellow cards this season",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      0,
+      15
+    ],
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "red_cards",
+    "source": "fpl",
+    "type": "number",
+    "description": "Red cards this season",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      0,
+      5
+    ],
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "expected_goals",
+    "source": "fpl",
+    "type": "number",
+    "description": "Expected goals (xG) season total from the FPL data feed",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      0,
+      40
+    ],
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "expected_assists",
+    "source": "fpl",
+    "type": "number",
+    "description": "Expected assists (xA) season total",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      0,
+      25
+    ],
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "expected_goal_involvements",
+    "source": "fpl",
+    "type": "number",
+    "description": "Expected goal involvements (xGI = xG + xA) season total",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      0,
+      60
+    ],
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "expected_goals_per_90",
+    "source": "fpl",
+    "type": "number",
+    "unit": "per 90",
+    "description": "xG per 90 minutes",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      0,
+      2
+    ],
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "expected_assists_per_90",
+    "source": "fpl",
+    "type": "number",
+    "unit": "per 90",
+    "description": "xA per 90 minutes",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      0,
+      1.5
+    ],
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "expected_goal_involvements_per_90",
+    "source": "fpl",
+    "type": "number",
+    "unit": "per 90",
+    "description": "xGI per 90 minutes",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      0,
+      2.5
+    ],
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "fdr",
+    "source": "fpl",
+    "type": "number",
+    "description": "Fixture Difficulty Rating for next fixture (1=easiest, 5=hardest). Not in bootstrap-static; filled to 3 (neutral) until a fixture loader is wired (backlog).",
+    "fill": {
+      "kind": "constant",
+      "value": 3
+    },
+    "range": [
+      1,
+      5
+    ],
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "transfers_in_event",
+    "source": "fpl",
+    "type": "number",
+    "description": "Net transfers in this gameweek",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      0,
+      2000000
+    ],
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "transfers_out_event",
+    "source": "fpl",
+    "type": "number",
+    "description": "Net transfers out this gameweek",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      0,
+      2000000
+    ],
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "defensive_contribution",
+    "source": "fpl",
+    "type": "number",
+    "description": "Season defensive contribution points (2025-26 rule: awarded for high CBI/tackle counts)",
+    "fill": {
+      "kind": "zero"
+    },
+    "range": [
+      0,
+      100
+    ],
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "defensive_contribution_per_90",
+    "source": "fpl",
+    "type": "number",
+    "unit": "per 90",
+    "description": "Defensive contribution points per 90 minutes",
+    "fill": {
+      "kind": "zero"
+    },
+    "range": [
+      0,
+      5
+    ],
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "clearances_blocks_interceptions",
+    "source": "fpl",
+    "type": "number",
+    "description": "CBI total this season — clearances + blocks + interceptions",
+    "fill": {
+      "kind": "zero"
+    },
+    "range": [
+      0,
+      300
+    ],
+    "status": "live",
+    "entityLevel": "player"
+  },
+  {
+    "name": "fd_goals",
+    "source": "football_data",
+    "type": "number",
+    "description": "Goals scored this season per football-data.org (includes penalties). Sparse — 0 for non-scorers.",
+    "fill": {
+      "kind": "zero"
+    },
+    "range": [
+      0,
+      50
+    ],
+    "status": "proposed",
+    "entityLevel": "player"
+  },
+  {
+    "name": "fd_assists",
+    "source": "football_data",
+    "type": "number",
+    "description": "Assists this season per football-data.org. Sparse — 0 for players not appearing in /scorers.",
+    "fill": {
+      "kind": "zero"
+    },
+    "range": [
+      0,
+      30
+    ],
+    "status": "proposed",
+    "entityLevel": "player"
+  },
+  {
+    "name": "fd_penalties",
+    "source": "football_data",
+    "type": "number",
+    "description": "Penalty goals this season (subset of fd_goals). Sparse — 0 for non-scorers.",
+    "fill": {
+      "kind": "zero"
+    },
+    "range": [
+      0,
+      20
+    ],
+    "status": "proposed",
+    "entityLevel": "player"
+  },
+  {
+    "name": "fd_played_matches",
+    "source": "football_data",
+    "type": "number",
+    "description": "Matches appeared in per football-data.org /scorers. Sparse — 0 for non-scorers (not a full appearances count).",
+    "fill": {
+      "kind": "zero"
+    },
+    "range": [
+      0,
+      38
+    ],
+    "status": "proposed",
+    "entityLevel": "player"
+  },
+  {
+    "name": "fd_goals_per_90",
+    "source": "football_data",
+    "type": "number",
+    "unit": "per 90",
+    "description": "Goals per 90 minutes (fd_goals / fd_played_matches * 90). 0 when fd_played_matches = 0.",
+    "fill": {
+      "kind": "zero"
+    },
+    "range": [
+      0,
+      3
+    ],
+    "status": "proposed",
+    "entityLevel": "player"
+  },
+  {
+    "name": "fd_assists_per_90",
+    "source": "football_data",
+    "type": "number",
+    "unit": "per 90",
+    "description": "Assists per 90 minutes (fd_assists / fd_played_matches * 90). 0 when fd_played_matches = 0.",
+    "fill": {
+      "kind": "zero"
+    },
+    "range": [
+      0,
+      2
+    ],
+    "status": "proposed",
+    "entityLevel": "player"
+  },
+  {
+    "name": "fd_goal_involvements",
+    "source": "football_data",
+    "type": "number",
+    "description": "Total direct goal contributions (fd_goals + fd_assists). Sparse — 0 for non-scorers.",
+    "fill": {
+      "kind": "zero"
+    },
+    "range": [
+      0,
+      60
+    ],
+    "status": "proposed",
+    "entityLevel": "player"
+  },
+  {
+    "name": "fd_penalty_share",
+    "source": "football_data",
+    "type": "number",
+    "description": "Fraction of goals that came from penalties (fd_penalties / (fd_goals + 1)). High value = penalty-dependent scorer.",
+    "fill": {
+      "kind": "zero"
+    },
+    "range": [
+      0,
+      1
+    ],
+    "status": "proposed",
+    "entityLevel": "player"
+  },
+  {
+    "name": "table_position",
+    "source": "football_data",
+    "type": "number",
+    "description": "Current league table position (1 = top). Broadcast to all players on the team.",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      1,
+      20
+    ],
+    "status": "proposed",
+    "entityLevel": "team-broadcast"
+  },
+  {
+    "name": "table_points",
+    "source": "football_data",
+    "type": "number",
+    "description": "Cumulative league points this season. Broadcast to all players on the team.",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      0,
+      114
+    ],
+    "status": "proposed",
+    "entityLevel": "team-broadcast"
+  },
+  {
+    "name": "goal_difference",
+    "source": "football_data",
+    "type": "number",
+    "description": "Season goal difference (goals_for − goals_against). Can be negative. Broadcast.",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      -80,
+      80
+    ],
+    "status": "proposed",
+    "entityLevel": "team-broadcast"
+  },
+  {
+    "name": "goals_for",
+    "source": "football_data",
+    "type": "number",
+    "description": "Team goals scored this season (total, not per-player). Broadcast.",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      0,
+      120
+    ],
+    "status": "proposed",
+    "entityLevel": "team-broadcast"
+  },
+  {
+    "name": "goals_against",
+    "source": "football_data",
+    "type": "number",
+    "description": "Team goals conceded this season (total). Broadcast.",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      0,
+      120
+    ],
+    "status": "proposed",
+    "entityLevel": "team-broadcast"
+  },
+  {
+    "name": "wins",
+    "source": "football_data",
+    "type": "number",
+    "description": "Season wins. Broadcast.",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      0,
+      38
+    ],
+    "status": "proposed",
+    "entityLevel": "team-broadcast"
+  },
+  {
+    "name": "draws",
+    "source": "football_data",
+    "type": "number",
+    "description": "Season draws. Broadcast.",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      0,
+      38
+    ],
+    "status": "proposed",
+    "entityLevel": "team-broadcast"
+  },
+  {
+    "name": "losses",
+    "source": "football_data",
+    "type": "number",
+    "description": "Season losses. Broadcast.",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      0,
+      38
+    ],
+    "status": "proposed",
+    "entityLevel": "team-broadcast"
+  },
+  {
+    "name": "played_games",
+    "source": "football_data",
+    "type": "number",
+    "description": "Matches played by the team this season (max 38). Broadcast.",
+    "fill": {
+      "kind": "none"
+    },
+    "range": [
+      0,
+      38
+    ],
+    "status": "proposed",
+    "entityLevel": "team-broadcast"
+  },
+  {
+    "name": "prior_goals",
+    "source": "football_data",
+    "type": "number",
+    "description": "Goals scored in previous season (SA or FL1) for cross-league transfers. 0 for players with no cross-league prior record.",
+    "fill": {
+      "kind": "zero"
+    },
+    "range": [
+      0,
+      40
+    ],
+    "status": "proposed",
+    "entityLevel": "transfer-prior"
+  },
+  {
+    "name": "prior_assists",
+    "source": "football_data",
+    "type": "number",
+    "description": "Assists in previous season (SA or FL1) for cross-league transfers. 0 for no prior.",
+    "fill": {
+      "kind": "zero"
+    },
+    "range": [
+      0,
+      25
+    ],
+    "status": "proposed",
+    "entityLevel": "transfer-prior"
+  },
+  {
+    "name": "prior_played_matches",
+    "source": "football_data",
+    "type": "number",
+    "description": "Matches appeared in prior season (SA/FL1). 0 for no prior.",
+    "fill": {
+      "kind": "zero"
+    },
+    "range": [
+      0,
+      38
+    ],
+    "status": "proposed",
+    "entityLevel": "transfer-prior"
+  },
+  {
+    "name": "prior_goals_per_90",
+    "source": "football_data",
+    "type": "number",
+    "unit": "per 90",
+    "description": "Prior-season goals per 90 minutes (prior_goals / prior_played_matches * 90). 0 for no prior.",
+    "fill": {
+      "kind": "zero"
+    },
+    "range": [
+      0,
+      3
+    ],
+    "status": "proposed",
+    "entityLevel": "transfer-prior"
+  },
+  {
+    "name": "prior_assists_per_90",
+    "source": "football_data",
+    "type": "number",
+    "unit": "per 90",
+    "description": "Prior-season assists per 90 minutes. 0 for no prior.",
+    "fill": {
+      "kind": "zero"
+    },
+    "range": [
+      0,
+      2
+    ],
+    "status": "proposed",
+    "entityLevel": "transfer-prior"
+  }
+]

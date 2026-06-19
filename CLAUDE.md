@@ -41,15 +41,18 @@ npm run snapshot                           # regenerate datasets/fpl-2025-26/raw
 - **Multi-source data (ADR-002).** Each data source is an independent repo implementing the `DataSource` contract. Fields from non-default sources are addressed as `source.field` in factor expressions. The `fpl` source is the default; its fields resolve bare or prefixed. See `docs/11-data-sources.md`.
 
 ## What's in progress right now
-Engine Phase 1 is complete (lexer → parser → sema → scalar runtime → REPL). Up next:
-- **019–022:** multi-source grammar + DataSource contract + Panel merge (ADR-002)
+Engine Phase 1 is complete (lexer → parser → sema → scalar runtime → REPL).
+Multi-source plumbing (019–026) is done. Up next:
+- **027:** Data Manager skeleton (ADR-003) + discovery template stubs
+- **028:** Implement football-data.org DataSource (standings + scorers)
+- **029:** Wire Data Manager into evaluate/analyze public API
 - **010:** cross-sectional runtime (rank/z/quantile)
 - **011:** time-series runtime (ts_mean/delta/std)
 - **009/013:** run.ts + llm-harness.ts bin/ entrypoints
 
 ## Where to find things
-- **Language spec:** docs/ (README + 01-usecases through 11-data-sources)
-- **Architecture decisions:** .project/decisions/ (ADR-001 = language/runtime; ADR-002 = multi-source data)
+- **Language spec:** docs/ (README + 01-usecases through 14-field-dictionary)
+- **Architecture decisions:** .project/decisions/ (ADR-001 = language/runtime; ADR-002 = multi-source data; ADR-003 = Data Manager)
 - **Backlog:** .project/backlog/BACKLOG.md
 - **Sample factor libraries:** factors/ (scoring.factors, momentum.factors, captain.factors)
 - **Offline data loader (fpl source):** data/loadSnapshot.ts + datasets/fpl-2025-26/raw/
@@ -59,3 +62,10 @@ Engine Phase 1 is complete (lexer → parser → sema → scalar runtime → REP
 ## Workflow habits
 - Mark backlog items done immediately after implementing them.
 - When committing, include [NNN] ticket IDs in the message (hook auto-marks them done).
+
+## Agent skills
+
+### Domain docs — single-context
+Glossary / ubiquitous language: `.project/CONTEXT.md` (create lazily on first resolved term — do not create it empty).
+ADRs: `.project/decisions/` (existing, use the numbering already there).
+`domain-modeling` and `grill-with-docs` write here instead of root `CONTEXT.md` + `docs/adr/`.

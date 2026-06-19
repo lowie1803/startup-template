@@ -24,6 +24,7 @@ export const TT = {
   LPAREN:  '(',
   RPAREN:  ')',
   COMMA:   ',',
+  DOT:     '.',
   // structural
   NEWLINE: 'NEWLINE',
   EOF:     'EOF',

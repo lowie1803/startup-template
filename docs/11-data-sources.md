@@ -221,5 +221,6 @@ const result   = evaluate(factorText, panel, allFields);
 
 - **Grammar**: qualified name syntax → [`02-syntax.md`](02-syntax.md)
 - **fpl field catalog**: full FPL field list → [`05-fields.md`](05-fields.md)
+- **Well-formedness standard**: validation pipeline + FillPolicy catalog → [`12-dataset-standard.md`](12-dataset-standard.md)
 - **Architecture decision**: rationale, trade-offs, backlog items → [ADR-002](../.project/decisions/ADR-002-multi-source-data.md)
 - **Backlog**: implementation items 019–023 → [`.project/backlog/BACKLOG.md`](../.project/backlog/BACKLOG.md)

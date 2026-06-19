@@ -34,7 +34,7 @@ export function PlayerTable({ panel, factorNames, visibleRows }: PlayerTableProp
         : String(va).localeCompare(String(vb));
       return effectiveSortAsc ? cmp : -cmp;
     });
-  }, [panel, effectiveSortCol, effectiveSortAsc]);
+  }, [panel, effectiveSortCol, effectiveSortAsc, visibleRows]);
 
   function handleHeaderClick(col: string) {
     if (sortCol === col) {

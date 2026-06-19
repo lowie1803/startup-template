@@ -8,8 +8,8 @@
  * Usage: tsx scripts/bake-snapshot.ts
  */
 
-import { writeFileSync, mkdirSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
+import { writeFileSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
+import { resolve, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -40,3 +40,18 @@ console.log(`✓ panel.json  (${panel.rowCount} players, ${Object.keys(columns).
 const fields = listFields();
 writeFileSync(resolve(publicDir, 'fields.json'), JSON.stringify(fields), 'utf-8');
 console.log(`✓ fields.json (${fields.length} fields)`);
+
+// ── Examples ──────────────────────────────────────────────────────────────────
+
+const factorsDir = resolve(__dirname, '../../factors');
+const exampleFiles = readdirSync(factorsDir)
+  .filter(f => f.endsWith('.factors'))
+  .sort();
+
+const examples = exampleFiles.map(f => ({
+  name: basename(f, '.factors'),
+  text: readFileSync(resolve(factorsDir, f), 'utf-8'),
+}));
+
+writeFileSync(resolve(publicDir, 'examples.json'), JSON.stringify(examples), 'utf-8');
+console.log(`✓ examples.json (${examples.length} factor libraries)`);

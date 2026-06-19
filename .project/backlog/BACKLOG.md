@@ -4,7 +4,7 @@
 
 | ID  | Type    | Description                                               | Priority | Status |
 |-----|---------|-----------------------------------------------------------|----------|--------|
-| 031 | app     | app-demo skeleton: Vite+React+CodeMirror, fplang alias, snapshot in public/, evaluate→player-table, localStorage save/load + auto-save (rolling 20 states) | P1 | todo |
+| 031 | app     | app-demo skeleton: Vite+React+CodeMirror, fplang alias, snapshot in public/, evaluate→player-table, localStorage save/load + auto-save (rolling 20 states) | P1 | done |
 | 032 | data    | Add `chance_of_playing_this_round` to fpl field catalog (`src/catalog/fields.ts`) | P1 | todo |
 | 028 | data    | Implement football-data.org source via the Data Manager — aggregate cross-league stats for new players (promoted clubs, summer recruits); manual `data/identity-overrides.json` for top transfers; name_match for long tail; implement `applyCoefficients` stub | P1 | todo |
 | 033 | app     | app-demo: Data Coverage tab (null heatmap players × fields) + source selector in top bar | P2 | todo |

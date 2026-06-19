@@ -4,11 +4,12 @@ import type { Panel } from 'fplang';
 interface PlayerTableProps {
   panel: Panel;
   factorNames: string[];
+  visibleRows?: Set<number> | null;
 }
 
 const DISPLAY_BASE = ['web_name', 'position', 'team', 'price'];
 
-export function PlayerTable({ panel, factorNames }: PlayerTableProps) {
+export function PlayerTable({ panel, factorNames, visibleRows }: PlayerTableProps) {
   const [sortCol, setSortCol]     = useState<string | null>(null);
   const [sortAsc, setSortAsc]     = useState(false);
 
@@ -19,7 +20,8 @@ export function PlayerTable({ panel, factorNames }: PlayerTableProps) {
   const cols = useMemo(() => [...DISPLAY_BASE, ...factorNames], [factorNames]);
 
   const rows = useMemo(() => {
-    const indices = Array.from({ length: panel.rowCount }, (_, i) => i);
+    const indices = Array.from({ length: panel.rowCount }, (_, i) => i)
+      .filter(i => visibleRows == null || visibleRows.has(i));
     return indices.sort((a, b) => {
       const va = panel.getValue(effectiveSortCol, a);
       const vb = panel.getValue(effectiveSortCol, b);

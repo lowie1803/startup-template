@@ -87,6 +87,16 @@ export const FPL_FIELDS: FieldDef[] = [
     fill: { kind: 'none' }, range: [0, 3780],
   },
   {
+    name: 'starts', source: 'fpl', type: 'number',
+    description: 'Number of matches started this season',
+    fill: { kind: 'zero' }, range: [0, 38],
+  },
+  {
+    name: 'chance_of_playing_this_round', source: 'fpl', type: 'number', unit: '%',
+    description: 'Probability of playing this GW (0–100). Null means fully fit; filled to 100',
+    fill: { kind: 'constant', value: 100 }, range: [0, 100],
+  },
+  {
     name: 'chance_of_playing_next_round', source: 'fpl', type: 'number', unit: '%',
     description: 'Probability of playing next GW (0–100). Null in the API means fully fit; filled to 100',
     fill: { kind: 'constant', value: 100 }, range: [0, 100],

@@ -35,9 +35,32 @@ export function App() {
   const [filterId, setFilterId]       = useState('all');
   const [drawerOpen, setDrawerOpen]   = useState(false);
   const [docsOpen, setDocsOpen]       = useState(false);
+  const [leftWidth, setLeftWidth]     = useState(480);
 
   const evalTimerRef     = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isDragging       = useRef(false);
+
+  // ── Drag-to-resize ────────────────────────────────────────────────────────────
+  const onDividerMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    isDragging.current = true;
+    const startX = e.clientX;
+    const startW = leftWidth;
+
+    function onMove(ev: MouseEvent) {
+      if (!isDragging.current) return;
+      const newW = Math.max(260, Math.min(window.innerWidth - 260, startW + ev.clientX - startX));
+      setLeftWidth(newW);
+    }
+    function onUp() {
+      isDragging.current = false;
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    }
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }, [leftWidth]);
 
   // ── Boot ──────────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -150,7 +173,7 @@ export function App() {
       {/* Main content */}
       <div style={styles.main}>
         {/* Left panel */}
-        <div style={styles.left}>
+        <div style={{ ...styles.left, width: leftWidth }}>
           <div style={styles.editorArea}>
             <Editor value={text} onChange={handleChange} fields={engine.fields} />
           </div>
@@ -178,6 +201,9 @@ export function App() {
             </div>
           )}
         </div>
+
+        {/* Drag divider */}
+        <div style={styles.divider} onMouseDown={onDividerMouseDown} />
 
         {/* Right panel */}
         <div style={styles.right}>
@@ -228,8 +254,9 @@ const styles: Record<string, React.CSSProperties> = {
   bakedAt:     { fontSize: 12, color: '#9ca3af', marginLeft: 'auto' },
   topBtn:      { padding: '4px 12px', border: '1px solid #e5e7eb', borderRadius: 6, background: '#f9fafb', cursor: 'pointer', fontSize: 13 },
   main:        { display: 'flex', flex: 1, overflow: 'hidden' },
-  left:        { width: 480, minWidth: 320, display: 'flex', flexDirection: 'column', borderRight: '1px solid #e5e7eb' },
-  editorArea:  { flex: 1, overflow: 'hidden' },
+  left:        { minWidth: 260, display: 'flex', flexDirection: 'column', flexShrink: 0, overflow: 'hidden' },
+  editorArea:  { flex: 1, minHeight: 0, overflow: 'hidden' },
+  divider:     { width: 4, cursor: 'col-resize', background: '#e5e7eb', flexShrink: 0, transition: 'background 0.15s' },
   diagPanel:   { maxHeight: 140, overflowY: 'auto', borderTop: '1px solid #fca5a5', background: '#fff5f5', padding: '6px 10px' },
   diagItem:    { fontSize: 12, color: '#374151', padding: '2px 0' },
   diagError:   { color: '#dc2626', marginRight: 4 },

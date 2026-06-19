@@ -4,22 +4,24 @@
 
 | ID  | Type    | Description                                               | Priority | Status |
 |-----|---------|-----------------------------------------------------------|----------|--------|
-| 009 | bin     | run.ts file runner                                        | P1       | todo   |
-| 010 | engine  | Cross-sectional: rank/z/quantile/scale/demean (Tier 2)   | P1       | todo   |
-| 011 | engine  | Time-series: ts_* over ListArray history (Tier 3)        | P1       | todo   |
-| 013 | bin     | llm-harness.ts LLM generation harness                    | P2       | todo   |
-| 014 | docs    | docs/design/architecture.md — locked decisions + ladder  | P1       | todo   |
-| 017 | engine  | expected_minutes(n) / xgw_pts(n) parameterized factors   | P2       | todo   |
-| 018 | engine  | goal_points/cs_points/assist_points domain lookup fns    | P1       | todo   |
-| 027 | engine  | Data Manager: ADR-003 + discovery template + skeleton stubs | P1      | todo   |
+| 031 | app     | app-demo skeleton: Vite+React+CodeMirror, fplang alias, snapshot in public/, evaluate→player-table, localStorage save/load + auto-save (rolling 20 states) | P1 | todo |
+| 032 | data    | Add `chance_of_playing_this_round` to fpl field catalog (`src/catalog/fields.ts`) | P1 | todo |
+| 028 | data    | Implement football-data.org source via the Data Manager — aggregate cross-league stats for new players (promoted clubs, summer recruits); manual `data/identity-overrides.json` for top transfers; name_match for long tail; implement `applyCoefficients` stub | P1 | todo |
+| 033 | app     | app-demo: Data Coverage tab (null heatmap players × fields) + source selector in top bar | P2 | todo |
+| 034 | app     | app-demo: deploy to dl-test.fpl.lowie.dev (static, manual GW refresh) | P2 | todo |
+| 035 | app     | app-demo: sources.config.ts wiring + seed factors/ onboarding library | P2 | todo |
 | 029 | engine  | Wire Data Manager into evaluate/analyze public API       | P2       | todo   |
 | 030 | integ   | fpl-elite Lab 0.2 — CodeMirror rich editor (syntax highlight + autocomplete + lint) wired to fplang language; re-add `fplang` vite alias in fpl-elite; published custom columns feed `customColumns` slice + `projection.js` seam. Restore client deps: `@uiw/react-codemirror`, `@codemirror/{autocomplete,language,lint,state,view}`, `@lezer/highlight`. Supersedes fpl-elite [105]–[111]. See fpl-elite ADR-002. | P2       | todo   |
+| 009 | bin     | run.ts file runner — JSON output, primary consumer is LLM harness | P2 | todo |
+| 013 | bin     | llm-harness.ts LLM generation harness                    | P2       | todo   |
+| 014 | docs    | docs/design/architecture.md — locked decisions + ladder  | P2       | todo   |
 
-## Deferred
+## Deferred (post-July)
 
-| ID  | Type    | Description                                               | Priority | Notes |
-|-----|---------|-----------------------------------------------------------|----------|-------|
-| 028 | data    | Implement football-data.org source via the Data Manager  | P2       | Deferred — focus on engine + fpl source first |
+| ID  | Type    | Description                                               | Notes |
+|-----|---------|-----------------------------------------------------------|-------|
+| 011 | engine  | Time-series: ts_* over fixture-keyed ListArray history   | New players (summer recruits, promoted clubs) have zero history — exactly the cohort that matters early-season. Revisit mid-season GW6+. Data IS in snapshot already. |
+| 017 | engine  | expected_minutes(n) / xgw_pts(n) parameterized factors   | Reshuffled: these become pre-seeded ts_* user factors (`ts_mean(series(minutes),3)`), not builtins. Ships with 011. |
 
 ## Done
 
@@ -44,6 +46,9 @@
 | 024 | data    | Dataset well-formedness validator (validateDataset + applyFills) | 2026-06-04 |
 | 025 | data    | Dataset well-formedness skill (.claude/skills/new-data-source) | 2026-06-04 |
 | 026 | data    | football-data.org capability catalog + discovery profile  | 2026-06-08 |
+| 010 | engine  | Cross-sectional: rank/z/quantile/scale/demean (Tier 2)   | 2026-06-19 |
+| 018 | engine  | goal_points/cs_points/assist_points domain lookup fns    | 2026-06-19 |
+| 027 | engine  | Data Manager: ADR-003 + discovery template + skeleton stubs | 2026-06-19 |
 
 ## Notes
 
@@ -61,5 +66,15 @@
   `range`). `applyFills()` + `validateDataset()` enforce the global-strict/all-rows
   well-formedness standard. The fpl source passes after fills (fdr→3, cop→100). The skill
   walks authors through the 6-stage pipeline: source→define→clean→fill→load→validate.
+- **2026-06-19 grilling session**: scoped July delivery. 010/018/027 closed (were implemented
+  in pre-grilling commit). 011 deferred — new players have no history, that's the early-season
+  cohort that matters. 017 reshuffled — becomes pre-seeded ts_* factors, not builtins. 028
+  un-deferred — cross-league aggregate stats fill the new-player gap at the level dimension.
+  ts_* series should be fixture-keyed (each appearance = one entry), NOT GW-keyed — stable to
+  double/blank/triple GWs. `status` field excluded from catalog — manager gamesmanship makes
+  it unreliable; use `chance_of_playing_this_round` instead. app-demo (031) ships this weekend.
+  Each data source lives in a separate repo; plugs into app-demo via `sources.config.ts`.
+  Draft factors → localStorage auto-save (rolling 20 states) → named pinned saves → download
+  as .factors → curate into factors/ library (crowdsourcing flywheel).
 
 ## Inbox
